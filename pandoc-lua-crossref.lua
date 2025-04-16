@@ -111,7 +111,7 @@ end
 ---@return Inline[] | nil
 local function parse_crossref(str)
    local opening_bracket, prefix_suppressor, id, closing_bracket, punctuation =
-       str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)(\\?%p?)$')
+       str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%p%)]-)$')
    if not id or id == '' then return end
    local only_internal_punctuation = id:find('^%a[%a%d-_:%.]*%a$') or id:find('%a')
    if not only_internal_punctuation then return end
