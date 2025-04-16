@@ -441,8 +441,7 @@ local function write_crossrefs(span)
          crossref_text = crossref_text .. target.number
       else
          crossref_text = '??'
-         io.stderr:write('WARNING: Cross-referenced element with id "' .. id ..
-            '" could not be resolved.\n')
+         pandoc.log.warn('Cross-referenced element with id "' .. id .. '" could not be resolved.')
       end
       local html_formats = {'chunkedhtml', 'html', 'html5', 'html4', 'slideous', 'slidy', 'dzslides', 'revealjs', 's5'}
       if pandoc.List(html_formats):includes(FORMAT) then
