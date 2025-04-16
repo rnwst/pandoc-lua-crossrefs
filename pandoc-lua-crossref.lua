@@ -231,16 +231,13 @@ local function number_sections(doc)
 
    -- Pandoc numbers the first smallest level header in a document '1',
    -- irrespective of what this level is. Therefore, to replicate this behavior,
-   -- we first need to determine the smallest header level in the document. The
-   -- largest header is needed to populate the 'counters' table with zeroes.
-   -- If `--number-offset` was supplied, the header level offsets need to be
-   -- considered as well.
-   local smallest_header_level
-   for i, offset in ipairs(PANDOC_WRITER_OPTIONS.number_offset) do
-      if smallest_header_level == nil and offset ~= 0 then
-         smallest_header_level = i
-      end
-   end
+   -- we first need to determine the smallest header level (the level of
+   -- the header which is printed in the largest font) in the document. The
+   -- largest header level (header which is printed smallest) is needed to
+   -- determine the length of the 'counters' table. If `--number-offset` was
+   -- supplied, the header level offsets need to be considered as well.
+   local smallest_header_level =
+      PANDOC_WRITER_OPTIONS.number_offset:find_if(function(int) return int ~= 0 end)
    local largest_header_level
    ---@param header Header
    doc:walk{Header = function(header)
@@ -266,10 +263,11 @@ local function number_sections(doc)
    return doc:walk{Header = function(header)
       if not header.classes:includes('unnumbered') then
          -- Increment header counters and reset higher levels.
-         local counter_level = header.level - smallest_header_level
-         local previous_counter = counters[counter_level] or 0
+         local counter_level = header.level - smallest_header_level + 1
+         local previous_counter = counters[counter_level]
          counters[counter_level] = previous_counter + 1
-         for i, _ in ipairs{ table.unpack(counters, counter_level + 1) } do
+         -- Reset counters of higher levels.
+         for i = counter_level + 1, #counters do
             counters[i] = 0
          end
          -- Create header number.
