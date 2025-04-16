@@ -78,8 +78,8 @@ local function parse_equation_attr(inlines)
             local math = elt
             local md_inlines = pandoc.write(pandoc.Pandoc{table.unpack(inlines, i + 1)}, 'markdown')
             local md_bracketed_span = '[]' .. md_inlines
-            local bracketed_span_inlines =
-                pandoc.read(md_bracketed_span, 'markdown').blocks[1].content --[[@as Inlines]]
+            local bracketed_span_inlines = pandoc.read(md_bracketed_span, 'markdown').blocks[1].content
+            ---@cast bracketed_span_inlines Inlines
             if bracketed_span_inlines[1].tag == 'Span' then
                local attr = bracketed_span_inlines[1].attr
                inlines[i] = pandoc.Span({ math }, attr)
@@ -461,34 +461,40 @@ local function write_crossrefs(span)
       -- as a cross-ref with a custom prefix.
       if #inlines == 3 and inlines[1].tag == 'Str' and inlines[2].tag == 'Space'
             and is_crossref(inlines[3]) and inlines[3].classes:includes('suppress-prefix') then
-         inlines[3] = resolve_crossref(inlines[3] --[[@as Span]])
+         ---@cast inlines[3] Span
+         inlines[3] = resolve_crossref(inlines[3])
          inlines[3].content = inlines
-         return inlines[3] --[[@as Link]]
+         return inlines[3]
       end
 
       -- Traverse inlines in reverse order to avoid problems with shifting indices.
       for i = #inlines, 1, -1 do
          if is_crossref(inlines[i]) then
-            local target_type = get_target_type(inlines[i] --[[@as Span]])
+            local crossref = inlines[i]
+            ---@cast crossref Span
+            local target_type = get_target_type(crossref)
             if not target_type then
-               inlines[i] = resolve_crossref(inlines[i] --[[@as Span]])
+               inlines[i] = resolve_crossref(crossref)
                goto continue
             end
+            ---@type List<integer>
             local crossref_indices = pandoc.List({i})
             local j = i
             local found_different_target_type = false
             while not found_different_target_type and j > 1 do
                j = j - 1
                if is_crossref(inlines[j]) then
-                  target_type = get_target_type(inlines[j] --[[@as Span]])
-                  if get_target_type(inlines[j] --[[@as Span]]) == target_type then
+                  local next_crossref = inlines[j]
+                  ---@cast next_crossref Span
+                  target_type = get_target_type(next_crossref)
+                  if get_target_type(next_crossref) == target_type then
                      crossref_indices:insert(1, j)
                   else
                      found_different_target_type = true
                   end
                end
             end
-            -- First replace crossrefs with Links, then insert separators.
+            -- First resolve crossrefs, then insert separators.
             if #crossref_indices == 1 then
                j = crossref_indices[1]
                inlines[j] = resolve_crossref(inlines[j] --[[@as Span]])
