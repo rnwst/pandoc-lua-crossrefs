@@ -269,7 +269,7 @@ local function number_sections(doc)
          local counter_level = header.level - smallest_header_level
          local previous_counter = counters[counter_level] or 0
          counters[counter_level] = previous_counter + 1
-         for i, _ in { table.unpack(counters, counter_level + 1) } do
+         for i, _ in ipairs{ table.unpack(counters, counter_level + 1) } do
             counters[i] = 0
          end
          -- Create header number.
