@@ -420,7 +420,7 @@ local function write_crossrefs(span)
    ---Resolve cross-reference.
    ---@param crossref Span cross-reference
    ---@param suppress_prefix? boolean whether to suppress prefixing the referenced object's type (e.g. 'Fig.' or 'Tbl.')
-   ---@return Link
+   ---@return Link | Span
    local function resolve_crossref(crossref, suppress_prefix)
       local id = crossref.attributes.id
       local target = ids[id]
@@ -444,9 +444,15 @@ local function write_crossrefs(span)
          io.stderr:write('WARNING: Cross-referenced element with id "' .. id ..
             '" could not be resolved.\n')
       end
-      local link = pandoc.Link({pandoc.Str(crossref_text)}, id)
-      link.attr = pandoc.Attr('', {'cross-ref'})
-      return link
+      local html_formats = {'chunkedhtml', 'html', 'html5', 'html4', 'slideous', 'slidy', 'dzslides', 'revealjs', 's5'}
+      if pandoc.List(html_formats):includes(FORMAT) then
+         local link = pandoc.Link(crossref_text, id)
+         link.attr = pandoc.Attr('', {'cross-ref'})
+         return link
+      else
+         local crossref_span = pandoc.Span(crossref_text, pandoc.Attr('', {'cross-ref'}))
+         return crossref_span
+      end
    end
 
    if is_crossref(span) then
