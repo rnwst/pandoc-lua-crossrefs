@@ -58,7 +58,7 @@ end
 ---Parse a Table Attr if it is present in the Table's caption. Pandoc does not
 ---yet support Attrs to be used in Table captions.
 ---@param tbl Table
----@return Table
+---@return Table | nil
 local function parse_table_attr(tbl)
    if #tbl.caption.long > 0 then
       local md_caption = pandoc.write(pandoc.Pandoc(tbl.caption.long), 'markdown')
@@ -558,6 +558,7 @@ local function write_crossrefs(span)
 end
 
 
+---@type Filter
 return {
    -- Reader functionality. This only works if the input format is Pandoc's
    -- Markdown, though support for other input formats could be added in the future
