@@ -458,7 +458,7 @@ local function write_crossrefs(span)
       end
       local html_formats = {'chunkedhtml', 'html', 'html5', 'html4', 'slideous', 'slidy', 'dzslides', 'revealjs', 's5'}
       if pandoc.List(html_formats):includes(FORMAT) then
-         local link = pandoc.Link(crossref_text, id)
+         local link = pandoc.Link(crossref_text, '#' .. id)
          link.attr = pandoc.Attr('', {'cross-ref'})
          return link
       else
