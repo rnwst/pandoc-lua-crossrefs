@@ -351,34 +351,43 @@ local figure_number = 0
 local table_number = 0
 ---Number figure or table.
 ---@param fig_or_tbl (Figure | Table)
+---@return (Figure | Table | nil)  Numbered Figure or Table, or `nil` if unnumbered
 local function number_fig_or_tbl(fig_or_tbl)
    if not fig_or_tbl.classes:includes('unnumbered') then
+      ---@type string
       local type
+      ---@type integer
       local number
-      local number_class
+      ---@type string
+      local label_class
+      ---@type string
+      local number_prefix
       if fig_or_tbl.tag == 'Figure' then
          type = 'fig'
          figure_number = figure_number + 1
          number = figure_number
-         number_class = 'figure-number'
+         label_class = 'figure-label'
+         number_prefix = 'Fig.\u{A0}'
       end
       if fig_or_tbl.tag == 'Table' then
          type = 'tbl'
          table_number = table_number + 1
          number = table_number
-         number_class = 'table-number'
+         label_class = 'table-label'
+         number_prefix = 'Tbl.\u{A0}'
       end
       if fig_or_tbl.identifier ~= '' then
          ids[fig_or_tbl.identifier] = { type = type, number = '' .. number }
       end
       local caption_prefix =
-          pandoc.Span({ pandoc.Str('' .. number) }, pandoc.Attr('', { number_class }))
+          pandoc.Span({ pandoc.Str(number_prefix .. number) }, pandoc.Attr('', { label_class }))
       -- If figure or table caption is not empty, append colon to number.
       if #fig_or_tbl.caption.long ~= 0 then
          caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
          fig_or_tbl.caption.long:insert(1, pandoc.Space())
       end
       fig_or_tbl.caption.long:insert(1, caption_prefix)
+      return fig_or_tbl
    end
 end
 
