@@ -84,32 +84,32 @@ local function parse_equation_attr(inlines)
 
    local inlines_modified = false
    -- Go from end-1 to start to avoid problems with changing indices.
-   for i = #inlines - 2, 1, -1 do
+   for i = #inlines - 1, 1, -1 do
       local elt, next_elt = inlines[i], inlines[i + 1]
       if is_display_math(elt) then
          if next_elt.tag == 'Str' and next_elt.text:sub(1, 1) == '{' then
             local math = elt
-            local md_inlines = pandoc.write(pandoc.Pandoc{table.unpack(inlines, i + 1)}, 'markdown')
+            local md_inlines = pandoc.write(pandoc.Pandoc(pandoc.Plain{table.unpack(inlines, i + 1)}), 'markdown')
             local md_bracketed_span = '[]' .. md_inlines
             local bracketed_span_inlines = pandoc.read(md_bracketed_span, 'markdown').blocks[1].content
             ---@cast bracketed_span_inlines Inlines
             if bracketed_span_inlines[1].tag == 'Span' then
                local attr = bracketed_span_inlines[1].attr
-               inlines[i] = pandoc.Span({ math }, attr)
-               ---@type Inline[]
-               inlines = {table.unpack(inlines, 1, i), table.unpack(bracketed_span_inlines, 2)}
+               inlines[i] = pandoc.Span(math, attr)
+               ---@type List<Inline>
+               inlines =
+                  pandoc.List{table.unpack(inlines, 1, i)} .. pandoc.List{table.unpack(bracketed_span_inlines, 2)}
             else
                -- Wrap Math in Span. If all DisplayMath elements are
                -- wrapped in a Span, the subsequent filter functions are
                -- less complex.
-               inlines[i] = pandoc.Span({ math })
+               inlines[i] = pandoc.Span(math)
             end
-            inlines_modified = true
          else
             -- Wrap Math in Span.
-            inlines[i] = pandoc.Span({ inlines[i] })
-            inlines_modified = true
+            inlines[i] = pandoc.Span(inlines[i])
          end
+         inlines_modified = true
       end
    end
 
