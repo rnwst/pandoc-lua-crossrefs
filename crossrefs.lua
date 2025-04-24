@@ -513,7 +513,6 @@ local function write_crossrefs(span)
                if is_crossref(inlines[j]) then
                   local next_crossref = inlines[j]
                   ---@cast next_crossref Span
-                  target_type = get_target_type(next_crossref)
                   if get_target_type(next_crossref) == target_type then
                      crossref_indices:insert(1, j)
                   else
@@ -526,7 +525,7 @@ local function write_crossrefs(span)
                j = crossref_indices[1]
                inlines[j] = resolve_crossref(inlines[j] --[[@as Span]])
             else
-               for idx in ipairs(crossref_indices) do
+               for _, idx in ipairs(crossref_indices) do
                   inlines[idx] = resolve_crossref(inlines[idx] --[[@as Span]], true)
                end
                local crossrefs_of_a_kind =
