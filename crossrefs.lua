@@ -319,7 +319,7 @@ local function number_equations(span)
          span.content[2] = pandoc.Space()
          span.content[3] =
              pandoc.Span({ pandoc.Str('(' .. equation_number .. ')') },
-                pandoc.Attr('', { 'equation-number' }))
+                pandoc.Attr('', { 'display-math-label' }))
          return span
       else
          -- Unnumbered equations do not need an equation container. However, we still
