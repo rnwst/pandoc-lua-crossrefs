@@ -438,7 +438,8 @@ end
 
 ---Resolve cross-references.
 ---@param span Span
----@return Link | Span | nil
+---@return (Link | Span), false? | nil, nil
+---@overload fun(Span): nil
 local function write_crossrefs(span)
    ---Resolve cross-reference.
    ---@param crossref Span cross-reference
@@ -562,7 +563,8 @@ local function write_crossrefs(span)
                or (elt.tag == 'Span' and elt.classes:includes('crossrefs-of-a-kind'))
             end
       )
-      return span
+      -- Don't process crossrefs in cross-ref-groups again.
+      return span, false
    end
 end
 
