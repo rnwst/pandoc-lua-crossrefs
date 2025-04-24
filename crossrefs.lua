@@ -117,17 +117,21 @@ local function parse_equation_attr(inlines)
       end
    end
 
-   -- Remove temp class.
-   inlines = inlines:walk({Span = function(span)
-      ---@cast span Span
-      if span.classes:includes('temp-class-to-prevent-empty-attr') then
-         span.classes = {}
-         return span
-      end
-   end})
-
    if inlines_modified then
       return inlines
+   end
+end
+
+
+---Remove temporary class from Spans with otherwise empty Attrs. This needs to
+---be done after all equation Attrs have been parsed, otherwise nested Spans
+---would cause problems. See https://github.com/jgm/pandoc/issues/10802.
+---@param span Span
+---@return Span
+local function remove_temp_classes(span)
+   if span.classes:includes('temp-class-to-prevent-empty-attr') then
+      span.classes = {}
+      return span
    end
 end
 
@@ -589,6 +593,9 @@ return {
    {
       Table = parse_table_attr,
       Inlines = parse_equation_attr,
+   },
+   {
+      Span = remove_temp_classes,
    },
    {
       Inlines = parse_crossrefs,
