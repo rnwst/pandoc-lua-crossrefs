@@ -98,21 +98,33 @@ local function parse_equation_attr(inlines)
                local attr = bracketed_span_inlines[1].attr
                inlines[i] = pandoc.Span(math, attr)
                ---@type List<Inline>
-               inlines =
+               inlines = pandoc.Inlines(
                   pandoc.List{table.unpack(inlines, 1, i)} .. pandoc.List{table.unpack(bracketed_span_inlines, 2)}
+               )
             else
                -- Wrap Math in Span. If all DisplayMath elements are
                -- wrapped in a Span, the subsequent filter functions are
                -- less complex.
-               inlines[i] = pandoc.Span(math)
+               -- Assign placeholder class as a workaround for https://github.com/jgm/pandoc/issues/10802
+               inlines[i] = pandoc.Span(math, pandoc.Attr('', {'temp-class-to-prevent-empty-attr'}))
             end
          else
             -- Wrap Math in Span.
-            inlines[i] = pandoc.Span(math)
+            -- Assign placeholder class as a workaround for https://github.com/jgm/pandoc/issues/10802
+            inlines[i] = pandoc.Span(math, pandoc.Attr('', {'temp-class-to-prevent-empty-attr'}))
          end
          inlines_modified = true
       end
    end
+
+   -- Remove temp class.
+   inlines = inlines:walk({Span = function(span)
+      ---@cast span Span
+      if span.classes:includes('temp-class-to-prevent-empty-attr') then
+         span.classes = {}
+         return span
+      end
+   end})
 
    if inlines_modified then
       return inlines
