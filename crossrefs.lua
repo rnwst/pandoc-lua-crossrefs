@@ -84,11 +84,12 @@ local function parse_equation_attr(inlines)
 
    local inlines_modified = false
    -- Go from end-1 to start to avoid problems with changing indices.
-   for i = #inlines - 1, 1, -1 do
+   for i = #inlines, 1, -1 do
       local elt, next_elt = inlines[i], inlines[i + 1]
       if is_display_math(elt) then
-         if next_elt.tag == 'Str' and next_elt.text:sub(1, 1) == '{' then
-            local math = elt
+         ---@type Math
+         local math = elt
+         if next_elt and next_elt.tag == 'Str' and next_elt.text:sub(1, 1) == '{' then
             local md_inlines = pandoc.write(pandoc.Pandoc(pandoc.Plain{table.unpack(inlines, i + 1)}), 'markdown')
             local md_bracketed_span = '[]' .. md_inlines
             local bracketed_span_inlines = pandoc.read(md_bracketed_span, 'markdown').blocks[1].content
@@ -107,7 +108,7 @@ local function parse_equation_attr(inlines)
             end
          else
             -- Wrap Math in Span.
-            inlines[i] = pandoc.Span(inlines[i])
+            inlines[i] = pandoc.Span(math)
          end
          inlines_modified = true
       end
