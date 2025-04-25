@@ -45,6 +45,7 @@ local function is_crossref(inline)
    return inline and inline.tag == 'Span' and inline.classes:includes('cross-ref')
 end
 
+
 ---Check if AST element is a cross-reference group (a Span with class 'cross-ref-group').
 ---@param inline Inline
 ---@return boolean
@@ -127,7 +128,7 @@ end
 ---be done after all equation Attrs have been parsed, otherwise nested Spans
 ---would cause problems. See https://github.com/jgm/pandoc/issues/10802.
 ---@param span Span
----@return Span
+---@return Span | nil
 local function remove_temp_classes(span)
    if span.classes:includes('temp-class-to-prevent-empty-attr') then
       span.classes = {}
@@ -368,7 +369,8 @@ local figure_number = 0
 local table_number = 0
 ---Number figure or table.
 ---@param fig_or_tbl (Figure | Table)
----@return (Figure | Table | nil)  Numbered Figure or Table, or `nil` if unnumbered
+---@return (Figure | Table), false  Numbered Figure or Table, or `nil` if unnumbered
+---@overload fun(fig_or_tbl: Figure | Table): nil
 local function number_fig_or_tbl(fig_or_tbl)
    if not fig_or_tbl.classes:includes('unnumbered') then
       ---@type string
@@ -377,34 +379,61 @@ local function number_fig_or_tbl(fig_or_tbl)
       local number
       ---@type string
       local label_class
-      ---@type string
-      local number_prefix
+      ---@type fun(num: integer): string
+      local number_formatter = function(num) return tostring(num) end
+      ---@type fun(num: integer): string
+      local label_formatter
+      ---@type boolean
+      local colon_after_label = true
+
       if fig_or_tbl.tag == 'Figure' then
          type = 'fig'
          figure_number = figure_number + 1
          number = figure_number
          label_class = 'figure-label'
-         number_prefix = 'Fig.\u{A0}'
+         label_formatter = function(num) return string.format('Fig.\u{A0}%s', num) end
       end
+
       if fig_or_tbl.tag == 'Table' then
          type = 'tbl'
          table_number = table_number + 1
          number = table_number
          label_class = 'table-label'
-         number_prefix = 'Tbl.\u{A0}'
+         label_formatter = function(num) return string.format('Tbl.\u{A0}%s', num) end
       end
-      if fig_or_tbl.identifier ~= '' then
-         ids[fig_or_tbl.identifier] = { type = type, number = '' .. number }
+
+      ---Add Fig or Tbl to table of Ids, prepend label to caption.
+      ---@param elt (Figure | Table)
+      local function process_fig_or_tbl(elt)
+         if elt.identifier ~= '' then
+            ids[elt.identifier] = { type = type, number = number_formatter(number) }
+         end
+         local caption_prefix =
+               pandoc.Span({ pandoc.Str(label_formatter(number)) }, pandoc.Attr('', { label_class }))
+         -- If figure or table caption is not empty, append colon to number.
+         if #elt.caption.long ~= 0 and colon_after_label then
+            caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
+            elt.caption.long:insert(1, pandoc.Space())
+         end
+         elt.caption.long:insert(1, caption_prefix)
       end
-      local caption_prefix =
-          pandoc.Span({ pandoc.Str(number_prefix .. number) }, pandoc.Attr('', { label_class }))
-      -- If figure or table caption is not empty, append colon to number.
-      if #fig_or_tbl.caption.long ~= 0 then
-         caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
-         fig_or_tbl.caption.long:insert(1, pandoc.Space())
+
+      process_fig_or_tbl(fig_or_tbl)
+
+      -- Number subfigs.
+      if type == 'fig' then
+         number = 0
+         number_formatter = function(num) return figure_number .. label_formatter(num) end
+         label_formatter = function(num) return string.format('(%s)', string.char(96 + num)) end
+         colon_after_label = false
+         fig_or_tbl = fig_or_tbl:walk({Figure = function(subfig)
+            number = number + 1
+            process_fig_or_tbl(subfig)
+            return subfig
+         end})
       end
-      fig_or_tbl.caption.long:insert(1, caption_prefix)
-      return fig_or_tbl
+
+      return fig_or_tbl, false -- Return `false` as second value to avoid processing subfigures again.
    end
 end
 
@@ -604,6 +633,7 @@ return {
    -- other formats will be added soon.
    {
       -- Number cross-referenceable elements and construct table with Ids and numbers.
+      traverse = 'topdown', -- needed for subfigs
       Pandoc = number_sections,
       Span = number_equations,
       Figure = number_fig_or_tbl,
