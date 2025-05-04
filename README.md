@@ -1,6 +1,6 @@
 # pandoc-lua-crossrefs
 
-Pandoc Lua filter for cross-references. Faster than the non-Lua alternatives. Currently only supports HTML output. Very much a WIP and yet to be tested thoroughly.
+Pandoc Lua filter for cross-references. Faster than the non-Lua alternatives.
 
 ## Usage
 
