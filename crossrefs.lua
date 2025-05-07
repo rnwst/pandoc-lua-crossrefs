@@ -14,6 +14,20 @@ end
 
 -- <Utilities> ---------------------------------------------------------------------------------------------------------
 
+---@type List<string>
+local html_formats = pandoc.List{
+   'chunkedhtml',
+   'html',
+   'html5',
+   'html4',
+   'slideous',
+   'slidy',
+   'dzslides',
+   'revealjs',
+   's5'
+}
+
+
 ---HTML-escape string.
 ---@param str string
 ---@return string
@@ -327,40 +341,48 @@ end
 local equation_number = 0
 ---Number equations (DisplayMath elements).
 ---@param span Span
----@return Span | RawInline | nil
+---@return Span | RawInline | Math | nil
 local function number_equations(span)
    -- A Span containing a Math element is Math with an Attr.
    if #span.content == 1 and is_display_math(span.content[1]) then
-      if not span.classes:includes('unnumbered') then
-         equation_number = equation_number + 1
-         if span.identifier ~= nil then
-            ids[span.identifier] = { type = 'eqn', number = tostring(equation_number) }
-         end
-         span.classes:insert('display-math-container')
-         span.content[2] = pandoc.Space()
-         span.content[3] =
-             pandoc.Span({ pandoc.Str('(' .. equation_number .. ')') },
-                pandoc.Attr('', { 'display-math-label' }))
-         return span
+      if FORMAT == 'docx' then
+         -- Equation numbering for DOCX output currently causes a formatting
+         -- issue (left-aligned instead of centered display equations), and
+         -- therefore equation numbering has been temporarily disabled until a
+         -- fix is found for this issue.
+         return span.content[1] --[[@as Math]]
       else
-         -- Unnumbered equations do not need an equation container. However, we still
-         -- need to preserve the Span's Attr.
-         if FORMAT == 'html' then
-            local math_method = PANDOC_WRITER_OPTIONS.html_math_method
-            if type(math_method) == 'table' then
-               math_method = math_method['method']
+         if not span.classes:includes('unnumbered') then
+            equation_number = equation_number + 1
+            if span.identifier ~= nil then
+               ids[span.identifier] = { type = 'eqn', number = tostring(equation_number) }
             end
+            span.classes:insert('display-math-container')
+            span.content[2] = pandoc.Space()
+            span.content[3] =
+                pandoc.Span({ pandoc.Str('(' .. equation_number .. ')') },
+                   pandoc.Attr('', { 'display-math-label' }))
+            return span
+         else
+            -- Unnumbered equations do not need an equation container. However, we still
+            -- need to preserve the Span's Attr.
+            if html_formats:includes(FORMAT) then
+               local math_method = PANDOC_WRITER_OPTIONS.html_math_method
+               if type(math_method) == 'table' then
+                  math_method = math_method['method']
+               end
 
-            -- Other math_methods yet to be implemented.
-            if math_method == 'katex' then
-               span.classes:insert(1, 'math')
-               local math = span.content[1]
-               local math_class =
-                   math.mathtype == 'InlineMath' and 'inline' or 'display'
-               span.classes:insert(1, math_class)
-               span.content[1] = pandoc.RawInline('html', html_escape(math.text))
-               local html = pandoc.write(pandoc.Pandoc{span}, 'html')
-               return pandoc.RawInline('html', html)
+               -- Other math_methods yet to be implemented.
+               if math_method == 'katex' then
+                  span.classes:insert(1, 'math')
+                  local math = span.content[1]
+                  local math_class =
+                      math.mathtype == 'InlineMath' and 'inline' or 'display'
+                  span.classes:insert(1, math_class)
+                  span.content[1] = pandoc.RawInline('html', html_escape(math.text))
+                  local html = pandoc.write(pandoc.Pandoc{span}, 'html')
+                  return pandoc.RawInline('html', html)
+               end
             end
          end
       end
@@ -515,8 +537,7 @@ local function write_crossrefs(span)
          crossref_text = '??'
          pandoc.log.warn('Cross-referenced element with id "' .. id .. '" could not be resolved.')
       end
-      local html_formats = {'chunkedhtml', 'html', 'html5', 'html4', 'slideous', 'slidy', 'dzslides', 'revealjs', 's5'}
-      if pandoc.List(html_formats):includes(FORMAT) then
+      if html_formats:includes(FORMAT) then
          local link = pandoc.Link(crossref_text, '#' .. id)
          link.attr = pandoc.Attr('', {'cross-ref'})
          return link
