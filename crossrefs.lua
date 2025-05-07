@@ -62,7 +62,10 @@ end
 ---@return Table | nil
 local function parse_table_attr(tbl)
    if #tbl.caption.long > 0 then
-      local md_caption = pandoc.write(pandoc.Pandoc(tbl.caption.long), 'markdown')
+      -- When writing the caption back to Markdown, we need to ensure the
+      -- Markdown isn't wrapped, otherwise lines other than the first won't be
+      -- interpreted as part of the header when reading the Markdown back in.
+      local md_caption = pandoc.write(pandoc.Pandoc(tbl.caption.long), 'markdown', {wrap_text = 'none'})
       -- The syntax for defining a table attr is the same as for a header.
       local md_header = '# ' .. md_caption
       local header = pandoc.read(md_header, 'markdown-auto_identifiers').blocks[1]
