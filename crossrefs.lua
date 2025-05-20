@@ -4,18 +4,17 @@
 local old_require = require
 local function require(modname)
    local prefix = pandoc.path.directory(PANDOC_SCRIPT_FILE)
-   modname = pandoc.path.join({prefix, modname})
+   modname = pandoc.path.join { prefix, modname }
    return old_require(modname)
 end
 
 -- Uncomment for debugging purposes:
 -- local logging = require 'logging.logging'
 
-
 -- <Utilities> ---------------------------------------------------------------------------------------------------------
 
 ---@type List<string>
-local html_formats = pandoc.List{
+local html_formats = pandoc.List {
    'chunkedhtml',
    'html',
    'html5',
@@ -24,41 +23,33 @@ local html_formats = pandoc.List{
    'slidy',
    'dzslides',
    'revealjs',
-   's5'
+   's5',
 }
-
 
 ---HTML-escape string.
 ---@param str string
 ---@return string
 local function html_escape(str)
    local entities = {
-      ['&'] = "&amp;",
-      ['<'] = "&lt;",
-      ['>'] = "&gt;",
-      ['"'] = "&quot;",
-      ["'"] = "&#39;"
+      ['&'] = '&amp;',
+      ['<'] = '&lt;',
+      ['>'] = '&gt;',
+      ['"'] = '&quot;',
+      ["'"] = '&#39;',
    }
-   local escaped_str = str:gsub("[&<>'\"]", entities)
+   local escaped_str = str:gsub('[&<>\'"]', entities)
    return escaped_str
 end
-
 
 ---Check if AST element is DisplayMath.
 ---@param inline Inline
 ---@return boolean
-local function is_display_math(inline)
-   return inline.tag == 'Math' and inline.mathtype == 'DisplayMath'
-end
-
+local function is_display_math(inline) return inline.tag == 'Math' and inline.mathtype == 'DisplayMath' end
 
 ---Check if AST element is a cross-reference (a cross-reference is a Span with class 'cross-ref').
 ---@param inline Inline
 ---@return boolean
-local function is_crossref(inline)
-   return inline and inline.tag == 'Span' and inline.classes:includes('cross-ref')
-end
-
+local function is_crossref(inline) return inline and inline.tag == 'Span' and inline.classes:includes('cross-ref') end
 
 ---Check if AST element is a cross-reference group (a Span with class 'cross-ref-group').
 ---@param inline Inline
@@ -69,7 +60,6 @@ end
 
 -- </Utilities> --------------------------------------------------------------------------------------------------------
 
-
 ---Parse a Table Attr if it is present in the Table's caption. Pandoc does not
 ---yet support Attrs to be used in Table captions.
 ---@param tbl Table
@@ -79,7 +69,7 @@ local function parse_table_attr(tbl)
       -- When writing the caption back to Markdown, we need to ensure the
       -- Markdown isn't wrapped, otherwise lines other than the first won't be
       -- interpreted as part of the header when reading the Markdown back in.
-      local md_caption = pandoc.write(pandoc.Pandoc(tbl.caption.long), 'markdown', {wrap_text = 'none'})
+      local md_caption = pandoc.write(pandoc.Pandoc(tbl.caption.long), 'markdown', { wrap_text = 'none' })
       -- The syntax for defining a table attr is the same as for a header.
       local md_header = '# ' .. md_caption
       local header = pandoc.read(md_header, 'markdown-auto_identifiers').blocks[1]
@@ -88,7 +78,6 @@ local function parse_table_attr(tbl)
       return tbl
    end
 end
-
 
 ---Parse an Equation Attr if it follows the Equation. Pandoc does not yet
 ---support Attrs to be used with Equations and the Pandoc Math AST element does
@@ -108,7 +97,7 @@ local function parse_equation_attr(inlines)
          ---@type Math
          local math = elt
          if next_elt and next_elt.tag == 'Str' and next_elt.text:sub(1, 1) == '{' then
-            local md_inlines = pandoc.write(pandoc.Pandoc(pandoc.Plain{table.unpack(inlines, i + 1)}), 'markdown')
+            local md_inlines = pandoc.write(pandoc.Pandoc(pandoc.Plain { table.unpack(inlines, i + 1) }), 'markdown')
             local md_bracketed_span = '[]' .. md_inlines
             local bracketed_span_inlines = pandoc.read(md_bracketed_span, 'markdown').blocks[1].content
             ---@cast bracketed_span_inlines Inlines
@@ -117,29 +106,26 @@ local function parse_equation_attr(inlines)
                inlines[i] = pandoc.Span(math, attr)
                ---@type List<Inline>
                inlines = pandoc.Inlines(
-                  pandoc.List{table.unpack(inlines, 1, i)} .. pandoc.List{table.unpack(bracketed_span_inlines, 2)}
+                  pandoc.List { table.unpack(inlines, 1, i) } .. pandoc.List { table.unpack(bracketed_span_inlines, 2) }
                )
             else
                -- Wrap Math in Span. If all DisplayMath elements are
                -- wrapped in a Span, the subsequent filter functions are
                -- less complex.
                -- Assign placeholder class as a workaround for https://github.com/jgm/pandoc/issues/10802
-               inlines[i] = pandoc.Span(math, pandoc.Attr('', {'temp-class-to-prevent-empty-attr'}))
+               inlines[i] = pandoc.Span(math, pandoc.Attr('', { 'temp-class-to-prevent-empty-attr' }))
             end
          else
             -- Wrap Math in Span.
             -- Assign placeholder class as a workaround for https://github.com/jgm/pandoc/issues/10802
-            inlines[i] = pandoc.Span(math, pandoc.Attr('', {'temp-class-to-prevent-empty-attr'}))
+            inlines[i] = pandoc.Span(math, pandoc.Attr('', { 'temp-class-to-prevent-empty-attr' }))
          end
          inlines_modified = true
       end
    end
 
-   if inlines_modified then
-      return inlines
-   end
+   if inlines_modified then return inlines end
 end
-
 
 ---Remove temporary class from Spans with otherwise empty Attrs. This needs to
 ---be done after all equation Attrs have been parsed, otherwise nested Spans
@@ -153,23 +139,20 @@ local function remove_temp_classes(span)
    end
 end
 
-
 ---Parse a cross-reference in Pandoc's Markdown.
 ---@param str Str
 ---@return Inline[] | nil
 local function parse_crossref(str)
    local opening_bracket, prefix_suppressor, id, closing_bracket, punctuation =
-       str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%p%)]-)$')
+      str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%p%)]-)$')
    if not id or id == '' then return end
    local only_internal_punctuation = id:find('^%a[%a%d-_:%.]*%a$') or id:find('%a')
    if not only_internal_punctuation then return end
 
-   local crossref = pandoc.Span({}, pandoc.Attr('', {'cross-ref'}))
+   local crossref = pandoc.Span({}, pandoc.Attr('', { 'cross-ref' }))
    crossref.attributes.id = id
-   if prefix_suppressor == '-' then
-      crossref.classes:insert('suppress-prefix')
-   end
-   local elts = pandoc.List({ crossref })
+   if prefix_suppressor == '-' then crossref.classes:insert('suppress-prefix') end
+   local elts = pandoc.List { crossref }
    if opening_bracket == '[' then elts:insert(1, pandoc.Str('[')) end
    if closing_bracket == ']' then elts:insert(pandoc.Str(']')) end
    if punctuation ~= '' then elts:insert(pandoc.Str(punctuation)) end
@@ -177,13 +160,12 @@ local function parse_crossref(str)
    return elts
 end
 
-
 ---Parse cross-references in Inlines.
 ---@param inlines Inlines
 ---@return nil | Inline[], boolean?
 local function parse_crossrefs(inlines)
    -- Parse cross-references into Spans.
-   local new_inlines = inlines:walk{Str = parse_crossref}
+   local new_inlines = inlines:walk { Str = parse_crossref }
 
    -- Early return if no cross-references were found!
    if new_inlines == inlines then return end
@@ -192,25 +174,27 @@ local function parse_crossrefs(inlines)
 
    -- Now separate out any opening or closing brackets in Strs into separate
    -- Strs.
-   inlines = inlines:walk{Str = function(str)
-      if str.text:find('^%[.') then
-         return { pandoc.Str('['), pandoc.Str(str.text:sub(2)) }
-      elseif str.text:find('.%]$') then
-         return { pandoc.Str(str.text:sub(1, -1)), pandoc.Str(']') }
-      end
-   end}
+   inlines = inlines:walk {
+      Str = function(str)
+         if str.text:find('^%[.') then
+            return { pandoc.Str('['), pandoc.Str(str.text:sub(2)) }
+         elseif str.text:find('.%]$') then
+            return { pandoc.Str(str.text:sub(1, -1)), pandoc.Str(']') }
+         end
+      end,
+   }
 
    -- Now create cross-ref groups. Crossref Groups are represented by Spans of
    -- class 'cross-ref-group'.
    ---@type List<Inline>
-   new_inlines = pandoc.List({})
+   new_inlines = pandoc.List {}
    local i = 1
    while inlines[i] do
       if i < #inlines and inlines[i].tag == 'Str' and inlines[i].text == '[' then
          ---@type boolean
          local at_least_one_crossref = false
          ---@type List<Inline>
-         local group_content = pandoc.List({})
+         local group_content = pandoc.List {}
          ---@type boolean
          local group_valid = false
          local j = i + 1
@@ -263,12 +247,10 @@ local function parse_crossrefs(inlines)
    return new_inlines, false -- Nested cross-references are not allowed!
 end
 
-
 -- Table of Ids and corresponding cross-referenceable elements. To be populated
 -- by various element numbering functions.
 ---@type table<string, {type: ('sec'|'fig'|'tbl'|'eqn'), number: string}>
 local ids = {}
-
 
 local function number_sections(doc)
    -- Pandoc numbers sections automatically if the `--number-sections` option
@@ -284,57 +266,57 @@ local function number_sections(doc)
    -- largest header level (header which is printed smallest) is needed to
    -- determine the length of the 'counters' table. If `--number-offset` was
    -- supplied, the header level offsets need to be considered as well.
-   local smallest_header_level =
-      PANDOC_WRITER_OPTIONS.number_offset:find_if(function(int) return int ~= 0 end)
+   local smallest_header_level = PANDOC_WRITER_OPTIONS.number_offset:find_if(function(int) return int ~= 0 end)
    local largest_header_level
    ---@param header Header
-   doc:walk{Header = function(header)
-      if not header.classes:includes('unnumbered') then
-         if smallest_header_level == nil or header.level < smallest_header_level then
-            smallest_header_level = header.level
+   doc:walk {
+      Header = function(header)
+         if not header.classes:includes('unnumbered') then
+            if smallest_header_level == nil or header.level < smallest_header_level then
+               smallest_header_level = header.level
+            end
+            if largest_header_level == nil or header.level > largest_header_level then
+               largest_header_level = header.level
+            end
          end
-         if largest_header_level == nil or header.level > largest_header_level then
-            largest_header_level = header.level
-         end
-      end
-   end}
+      end,
+   }
    -- Early return if doc has no headers!
    if not largest_header_level then return end
 
    ---@type List<integer>
-   local counters = pandoc.List({})
+   local counters = pandoc.List {}
    for i = 1, largest_header_level - smallest_header_level + 1 do
       counters[i] = PANDOC_WRITER_OPTIONS.number_offset[i + smallest_header_level - 1] or 0
    end
 
    ---@param header Header
-   return doc:walk{Header = function(header)
-      if not header.classes:includes('unnumbered') then
-         -- Increment header counters and reset higher levels.
-         local counter_level = header.level - smallest_header_level + 1
-         local previous_counter = counters[counter_level]
-         counters[counter_level] = previous_counter + 1
-         -- Reset counters of higher levels.
-         for i = counter_level + 1, #counters do
-            counters[i] = 0
+   return doc:walk {
+      Header = function(header)
+         if not header.classes:includes('unnumbered') then
+            -- Increment header counters and reset higher levels.
+            local counter_level = header.level - smallest_header_level + 1
+            local previous_counter = counters[counter_level]
+            counters[counter_level] = previous_counter + 1
+            -- Reset counters of higher levels.
+            for i = counter_level + 1, #counters do
+               counters[i] = 0
+            end
+            -- Create header number.
+            local number = table.concat(counters, '.', 1, counter_level)
+            -- Populate table with Ids.
+            if header.identifier ~= nil then ids[header.identifier] = { type = 'sec', number = number } end
+            -- If `number_sections` is not specified, number section.
+            if not PANDOC_WRITER_OPTIONS.number_sections then
+               header.attributes['number'] = number
+               header.content:insert(1, pandoc.Space())
+               local span = pandoc.Span({ pandoc.Str(number) }, pandoc.Attr('', { 'header-section-number' }))
+               header.content:insert(1, span)
+            end
          end
-         -- Create header number.
-         local number = table.concat(counters, '.', 1, counter_level)
-         -- Populate table with Ids.
-         if header.identifier ~= nil then
-            ids[header.identifier] = {type = 'sec', number = number}
-         end
-         -- If `number_sections` is not specified, number section.
-         if not PANDOC_WRITER_OPTIONS.number_sections then
-            header.attributes['number'] = number
-            header.content:insert(1, pandoc.Space())
-            local span = pandoc.Span({ pandoc.Str(number) }, pandoc.Attr('', { 'header-section-number' }))
-            header.content:insert(1, span)
-         end
-      end
-   end}
+      end,
+   }
 end
-
 
 -- Other equation numbering schemes such as 'chapter.number' are yet to be
 -- implemented.
@@ -360,27 +342,23 @@ local function number_equations(span)
             span.classes:insert('display-math-container')
             span.content[2] = pandoc.Space()
             span.content[3] =
-                pandoc.Span({ pandoc.Str('(' .. equation_number .. ')') },
-                   pandoc.Attr('', { 'display-math-label' }))
+               pandoc.Span({ pandoc.Str('(' .. equation_number .. ')') }, pandoc.Attr('', { 'display-math-label' }))
             return span
          else
             -- Unnumbered equations do not need an equation container. However, we still
             -- need to preserve the Span's Attr.
             if html_formats:includes(FORMAT) then
                local math_method = PANDOC_WRITER_OPTIONS.html_math_method
-               if type(math_method) == 'table' then
-                  math_method = math_method['method']
-               end
+               if type(math_method) == 'table' then math_method = math_method['method'] end
 
                -- Other math_methods yet to be implemented.
                if math_method == 'katex' then
                   span.classes:insert(1, 'math')
                   local math = span.content[1]
-                  local math_class =
-                      math.mathtype == 'InlineMath' and 'inline' or 'display'
+                  local math_class = math.mathtype == 'InlineMath' and 'inline' or 'display'
                   span.classes:insert(1, math_class)
                   span.content[1] = pandoc.RawInline('html', html_escape(math.text))
-                  local html = pandoc.write(pandoc.Pandoc{span}, 'html')
+                  local html = pandoc.write(pandoc.Pandoc { span }, 'html')
                   return pandoc.RawInline('html', html)
                end
             end
@@ -388,7 +366,6 @@ local function number_equations(span)
       end
    end
 end
-
 
 local figure_number = 0
 local table_number = 0
@@ -430,11 +407,8 @@ local function number_fig_or_tbl(fig_or_tbl)
       ---Add Fig or Tbl to table of Ids, prepend label to caption.
       ---@param elt (Figure | Table)
       local function process_fig_or_tbl(elt)
-         if elt.identifier ~= '' then
-            ids[elt.identifier] = { type = type, number = number_formatter(number) }
-         end
-         local caption_prefix =
-               pandoc.Span({ pandoc.Str(label_formatter(number)) }, pandoc.Attr('', { label_class }))
+         if elt.identifier ~= '' then ids[elt.identifier] = { type = type, number = number_formatter(number) } end
+         local caption_prefix = pandoc.Span({ pandoc.Str(label_formatter(number)) }, pandoc.Attr('', { label_class }))
          -- If figure or table caption is not empty, append colon to number.
          if #elt.caption.long ~= 0 and colon_after_label then
             caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
@@ -451,17 +425,18 @@ local function number_fig_or_tbl(fig_or_tbl)
          number_formatter = function(num) return figure_number .. label_formatter(num) end
          label_formatter = function(num) return string.format('(%s)', string.char(96 + num)) end
          colon_after_label = false
-         fig_or_tbl = fig_or_tbl:walk({Figure = function(subfig)
-            number = number + 1
-            process_fig_or_tbl(subfig)
-            return subfig
-         end})
+         fig_or_tbl = fig_or_tbl:walk {
+            Figure = function(subfig)
+               number = number + 1
+               process_fig_or_tbl(subfig)
+               return subfig
+            end,
+         }
       end
 
       return fig_or_tbl, false -- Return `false` as second value to avoid processing subfigures again.
    end
 end
-
 
 ---Get type of cross-reference target.
 ---@param crossref Span
@@ -471,14 +446,10 @@ local function get_target_type(crossref)
    return target and target.type
 end
 
-
 ---Whether element is a resolved cross-reference.
 ---@param elt Inline
 ---@return boolean
-local function is_resolved_crossref(elt)
-   return elt.tag == 'Link' and elt.classes:includes('cross-ref')
-end
-
+local function is_resolved_crossref(elt) return elt.tag == 'Link' and elt.classes:includes('cross-ref') end
 
 ---Separate adjacent elements of a certain kind with commas, and the last two
 ---elements with ", and ". If there are only two adjacent elements, insert " and "
@@ -487,11 +458,9 @@ end
 ---@param matches fun(elt: Inline): boolean
 local function insert_separators(inlines, matches)
    ---@type List<integer>
-   local adjacent_indices = pandoc.List({})
+   local adjacent_indices = pandoc.List {}
    for i = 2, #inlines do
-      if matches(inlines[i]) and matches(inlines[i-1]) then
-         adjacent_indices:insert(i)
-      end
+      if matches(inlines[i]) and matches(inlines[i - 1]) then adjacent_indices:insert(i) end
    end
 
    if #adjacent_indices == 1 then
@@ -504,7 +473,6 @@ local function insert_separators(inlines, matches)
       end
    end
 end
-
 
 ---Resolve cross-references.
 ---@param span Span
@@ -539,17 +507,15 @@ local function write_crossrefs(span)
       end
       if html_formats:includes(FORMAT) then
          local link = pandoc.Link(crossref_text, '#' .. id)
-         link.attr = pandoc.Attr('', {'cross-ref'})
+         link.attr = pandoc.Attr('', { 'cross-ref' })
          return link
       else
-         local crossref_span = pandoc.Span(crossref_text, pandoc.Attr('', {'cross-ref'}))
+         local crossref_span = pandoc.Span(crossref_text, pandoc.Attr('', { 'cross-ref' }))
          return crossref_span
       end
    end
 
-   if is_crossref(span) then
-      return resolve_crossref(span)
-   end
+   if is_crossref(span) then return resolve_crossref(span) end
 
    if is_crossref_group(span) then
       local inlines = span.content
@@ -557,8 +523,13 @@ local function write_crossrefs(span)
       -- Special case: If a cross-ref group is made up of a single Str, followed
       -- by a Space, followed by a cross-ref with suppressed prefix, treat this
       -- as a cross-ref with a custom prefix.
-      if #inlines == 3 and inlines[1].tag == 'Str' and inlines[2].tag == 'Space'
-            and is_crossref(inlines[3]) and inlines[3].classes:includes('suppress-prefix') then
+      if
+         #inlines == 3
+         and inlines[1].tag == 'Str'
+         and inlines[2].tag == 'Space'
+         and is_crossref(inlines[3])
+         and inlines[3].classes:includes('suppress-prefix')
+      then
          ---@cast inlines[3] Span
          inlines[3] = resolve_crossref(inlines[3])
          inlines[3].content = inlines
@@ -576,7 +547,7 @@ local function write_crossrefs(span)
                goto continue
             end
             ---@type List<integer>
-            local crossref_indices = pandoc.List({i})
+            local crossref_indices = pandoc.List { i }
             local j = i
             local found_different_target_type = false
             while not found_different_target_type and j > 1 do
@@ -600,7 +571,7 @@ local function write_crossrefs(span)
                   inlines[idx] = resolve_crossref(inlines[idx] --[[@as Span]], true)
                end
                local crossrefs_of_a_kind =
-                  pandoc.Span({table.unpack(inlines, j, i)}, pandoc.Attr('', {'crossrefs-of-a-kind'}))
+                  pandoc.Span({ table.unpack(inlines, j, i) }, pandoc.Attr('', { 'crossrefs-of-a-kind' }))
                crossrefs_of_a_kind.content:insert(1, pandoc.Space())
                local prefix = '??'
                if target_type == 'sec' then
@@ -628,15 +599,13 @@ local function write_crossrefs(span)
       insert_separators(
          inlines,
          function(elt)
-            return is_resolved_crossref(elt)
-               or (elt.tag == 'Span' and elt.classes:includes('crossrefs-of-a-kind'))
-            end
+            return is_resolved_crossref(elt) or (elt.tag == 'Span' and elt.classes:includes('crossrefs-of-a-kind'))
+         end
       )
       -- Don't process crossrefs in cross-ref-groups again.
       return span, false
    end
 end
-
 
 ---@type Filter
 return {

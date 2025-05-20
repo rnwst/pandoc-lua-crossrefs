@@ -1,0 +1,6 @@
+syntax = "Lua54"
+indent_type = "Spaces"
+indent_width = 3
+quote_style = "AutoPreferSingle"
+call_parentheses = "NoSingleTable"
+collapse_simple_statement = "Always"
