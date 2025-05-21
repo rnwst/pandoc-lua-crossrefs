@@ -268,8 +268,8 @@ local function number_sections(doc)
    -- supplied, the header level offsets need to be considered as well.
    local smallest_header_level = PANDOC_WRITER_OPTIONS.number_offset:find_if(function(int) return int ~= 0 end)
    local largest_header_level
-   ---@param header Header
    doc:walk {
+      ---@param header Header
       Header = function(header)
          if not header.classes:includes('unnumbered') then
             if smallest_header_level == nil or header.level < smallest_header_level then
@@ -290,8 +290,8 @@ local function number_sections(doc)
       counters[i] = PANDOC_WRITER_OPTIONS.number_offset[i + smallest_header_level - 1] or 0
    end
 
-   ---@param header Header
    return doc:walk {
+      ---@param header Header
       Header = function(header)
          if not header.classes:includes('unnumbered') then
             -- Increment header counters and reset higher levels.
