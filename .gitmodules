@@ -4,6 +4,3 @@
 [submodule "logging"]
 	path = logging
 	url = https://github.com/pandoc-ext/logging.git
-[submodule "luacheck"]
-	path = luacheck
-	url = https://github.com/rnwst/pandoc-luacheckrc
