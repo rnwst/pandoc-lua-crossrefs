@@ -1,0 +1,30 @@
+---
+repos:
+  - repo: local
+    hooks:
+
+      - id: stylua
+        name: StyLua code formatter (system)
+        description: An opinionated Lua code formatter
+        entry: stylua
+        language: system
+        types:
+          - lua
+
+      - id: luacheck
+        name: Luacheck diagnostics (system)
+        description: Runs luacheck for linting and static analysis using the system installation. This acts as a 'second pair of eyes' just in case LuaLS misses something.
+        entry: luacheck
+        language: system
+        pass_filenames: true
+        types:
+          - lua
+
+      - id: lua-language-server
+        name: LuaLS diagnostics (system)
+        description: Runs type checks and other diagnostics using the system installation of lua-language-server.
+        entry: lua-language-server --check=. --checklevel=Information
+        language: system
+        pass_filenames: false
+        types:
+          - lua
