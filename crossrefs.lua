@@ -1,14 +1,14 @@
 -- If the filter wasn't called from this directory (which usually won't be the
 -- case), we need to adjust the paths by which modules in subdirectories are
 -- loaded.
-local old_require = require
-local function require(modname)
-   local prefix = pandoc.path.directory(PANDOC_SCRIPT_FILE)
-   modname = pandoc.path.join { prefix, modname }
-   return old_require(modname)
-end
-
 -- Uncomment for debugging purposes:
+-- local old_require = require
+-- local function require(modname)
+--    local prefix = pandoc.path.directory(PANDOC_SCRIPT_FILE)
+--    modname = pandoc.path.join { prefix, modname }
+--    return old_require(modname)
+-- end
+
 -- local logging = require 'logging.logging'
 
 -- <Utilities> ---------------------------------------------------------------------------------------------------------
