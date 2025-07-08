@@ -409,12 +409,14 @@ local function number_fig_or_tbl(fig_or_tbl)
       local function process_fig_or_tbl(elt)
          if elt.identifier ~= '' then ids[elt.identifier] = { type = type, number = number_formatter(number) } end
          local caption_prefix = pandoc.Span({ pandoc.Str(label_formatter(number)) }, pandoc.Attr('', { label_class }))
-         -- If figure or table caption is not empty, append colon to number.
-         if #elt.caption.long ~= 0 and colon_after_label then
-            caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
-            elt.caption.long:insert(1, pandoc.Space())
+         if FORMAT ~= 'docx' then -- For DOCX, pandoc takes care of numbering figures and tables.
+            -- If figure or table caption is not empty, append colon to number.
+            if #elt.caption.long ~= 0 and colon_after_label then
+               caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
+               elt.caption.long:insert(1, pandoc.Space())
+            end
+            elt.caption.long:insert(1, caption_prefix)
          end
-         elt.caption.long:insert(1, caption_prefix)
       end
 
       process_fig_or_tbl(fig_or_tbl)
