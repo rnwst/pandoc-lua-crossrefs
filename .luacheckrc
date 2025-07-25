@@ -55,4 +55,10 @@ stds.pandoc = {
     }
 }
 
-std = 'lua54+pandoc'
+stds.crossrefs = {
+    globals = {
+        'IDs'
+    }
+}
+
+std = 'lua54+pandoc+crossrefs'
