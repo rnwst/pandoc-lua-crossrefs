@@ -45,3 +45,8 @@ Ensure the location of the Luacov binary location (`~/.luarocks/bin`) is on your
 luacov -r html lib
 ```
 Note that the output HTML file may have the `out` file extension rather than `html`.
+
+
+# Pre-commit hooks
+
+[pre-commit](https://pre-commit.com/) is used to manage git hooks. To install the pre-commit hooks, run `pre-commit install`. Note that running the hooks requires [`stylua`](https://github.com/JohnnyMorganz/StyLua), [`luacheck`](https://github.com/lunarmodules/luacheck), and [`lua-language-server`](https://github.com/LuaLS/lua-language-server) to be installed. Tests are also run in a pre-commit hook.
