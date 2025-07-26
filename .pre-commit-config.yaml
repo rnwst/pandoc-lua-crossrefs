@@ -28,3 +28,12 @@ repos:
         pass_filenames: false
         types:
           - lua
+
+      - id: unit-tests
+        name: Unit tests
+        description: Runs the existing unit tests.
+        entry: pandoc lua tests/unit.lua
+        language: system
+        pass_filenames: false
+        types:
+          - lua

@@ -1,5 +1,5 @@
 {
   "workspace": {
-    "library": ["types"]
+    "library": ["LuaCATS"]
   }
 }

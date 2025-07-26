@@ -16,14 +16,14 @@ parse_attr.parse_table_attr = function(tbl)
       local md_header = '# ' .. md_caption
       local header = pandoc.read(md_header, 'markdown-auto_identifiers').blocks[1]
       tbl.attr = header.attr
-      tbl.caption.long = pandoc.Plain(header.content)
+      tbl.caption.long = header.content ~= pandoc.Inlines {} and pandoc.Plain(header.content) or pandoc.Blocks {}
       return tbl
    end
 end
 
----Parse an Equation Attr if it follows the Equation. Pandoc does not yet
----support Attrs to be used with Equations and the Pandoc Math AST element does
----not include an Attr.
+---For Markdown input, parses an Equation Attr if it follows the
+---Equation. Pandoc does not yet support Attrs to be used with Equations
+---and the Pandoc Math AST element does not include an Attr.
 ---@param inlines Inlines
 ---@return Inline[] | nil
 parse_attr.parse_equation_attr = function(inlines)

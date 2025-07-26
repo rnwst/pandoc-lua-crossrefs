@@ -61,4 +61,4 @@ stds.crossrefs = {
    },
 }
 
-std = 'lua54+pandoc+crossrefs'
+std = 'lua54+pandoc+crossrefs+busted'
