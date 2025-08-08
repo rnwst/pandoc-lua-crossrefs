@@ -1,0 +1,5 @@
+reporter = 'html'
+reportfile = 'luacov.report.html'
+include = {
+   'lib%/.+$'
+}

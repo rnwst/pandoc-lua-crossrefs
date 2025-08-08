@@ -42,9 +42,8 @@ pandoc lua tests/unit.lua
 
 Ensure the location of the Luacov binary location (`~/.luarocks/bin`) is on your `PATH`. To generate an HTML coverage report after running tests, run
 ```console
-luacov -r html lib
+luacov
 ```
-Note that the output HTML file may have the `out` file extension rather than `html`.
 
 
 # Pre-commit hooks
