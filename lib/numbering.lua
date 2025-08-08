@@ -62,6 +62,7 @@ numbering.number_sections = function(doc)
                header.content:insert(1, pandoc.Space())
                local span = pandoc.Span({ pandoc.Str(number) }, pandoc.Attr('', { 'header-section-number' }))
                header.content:insert(1, span)
+               return header
             end
          end
       end,
@@ -159,13 +160,18 @@ numbering.number_fig_or_tbl = function(fig_or_tbl)
       local function process_fig_or_tbl(elt)
          if elt.identifier ~= '' then IDs[elt.identifier] = { type = type, number = number_formatter(number) } end
          local caption_prefix = pandoc.Span({ pandoc.Str(label_formatter(number)) }, pandoc.Attr('', { label_class }))
-         if FORMAT ~= 'docx' then -- For DOCX, pandoc takes care of numbering figures and tables.
+         if
+            not (
+               pandoc.List({ 'docx', 'opendocument', 'odt' }):includes(FORMAT)
+               and PANDOC_WRITER_OPTIONS.extensions:includes('native_numbering')
+            )
+         then
             -- If figure or table caption is not empty, append colon to number.
             if #elt.caption.long ~= 0 and colon_after_label then
                caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
-               elt.caption.long:insert(1, pandoc.Space())
+               elt.caption.long[1].content:insert(1, pandoc.Space())
             end
-            elt.caption.long:insert(1, caption_prefix)
+            elt.caption.long[1].content:insert(1, caption_prefix)
          end
       end
 
