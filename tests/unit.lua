@@ -1,17 +1,6 @@
 -- Unfortunately, LuaCATS annotations for busted are missing some `assert` fields.
 ---@diagnostic disable: undefined-field
 
--- Luacov (for coverage analysis) is installed locally, as there currently is no Arch package available.
--- The local location needs to be added to the search path.
-local home = os.getenv('HOME')
-package.path = home
-   .. '/.luarocks/share/lua/5.4/?.lua;'
-   .. home
-   .. '/.luarocks/share/lua/5.4/?/init.lua;'
-   .. package.path
-package.cpath = home .. '/.luarocks/lib/lua/5.4/?.so;' .. package.cpath
-require('busted.runner')()
-
 -- Test utils
 local function create_dummy_table(caption_str)
    local caption = pandoc.Caption(caption_str)

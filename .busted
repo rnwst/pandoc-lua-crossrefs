@@ -1,8 +1,8 @@
 return {
-  _all = {
-    coverage = true
-  },
-  default = {
-    verbose = true
-  },
+   _all = {
+      ROOT = { 'tests' },
+      pattern = '%.lua$',
+      coverage = true,
+      verbose = true,
+   },
 }

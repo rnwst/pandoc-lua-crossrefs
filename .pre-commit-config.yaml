@@ -4,15 +4,15 @@ repos:
     hooks:
 
       - id: stylua
-        name: StyLua code formatter (system)
+        name: StyLua code formatter
         description: An opinionated Lua code formatter
         entry: stylua
         language: system
         types: [file]
-        files: ^(.*\.lua|\.luacheckrc)$
+        files: ^(.*\.lua|\.luacheckrc|\.busted)$
 
       - id: luacheck
-        name: Luacheck diagnostics (system)
+        name: Luacheck diagnostics
         description: Runs luacheck for linting and static analysis using the system installation. This acts as a 'second pair of eyes' just in case LuaLS misses something.
         entry: luacheck
         language: system
@@ -21,7 +21,7 @@ repos:
           - lua
 
       - id: lua-language-server
-        name: LuaLS diagnostics (system)
+        name: LuaLS diagnostics
         description: Runs type checks and other diagnostics using the system installation of lua-language-server.
         entry: lua-language-server --check=. --checklevel=Information
         language: system
@@ -29,10 +29,10 @@ repos:
         types:
           - lua
 
-      - id: unit-tests
-        name: Unit tests
-        description: Runs the existing unit tests.
-        entry: pandoc lua tests/unit.lua
+      - id: tests
+        name: Tests
+        description: Runs existing unit and golden tests.
+        entry: ./test.lua
         language: system
         pass_filenames: false
         types:
