@@ -1,7 +1,139 @@
-[ Table
+[ Para
+    [ Str "Table"
+    , Space
+    , Str "with"
+    , Space
+    , Str "Caption"
+    , Space
+    , Str "and"
+    , Space
+    , Str "Attr:"
+    ]
+, Table
     ( "tab1" , [ "unnumbered" ] , [ ( "key" , "val" ) ] )
     (Caption
        Nothing [ Plain [ Str "Table" , Space , Str "caption" ] ])
+    [ ( AlignLeft , ColWidthDefault )
+    , ( AlignLeft , ColWidthDefault )
+    ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Symbol" ] ]
+           , Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Meaning" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "b" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "wingspan" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, Para
+    [ Str "Table"
+    , Space
+    , Str "without"
+    , Space
+    , Str "Caption"
+    , Space
+    , Str "but"
+    , Space
+    , Str "with"
+    , Space
+    , Str "Attr:"
+    ]
+, Table
+    ( "tab1" , [ "unnumbered" ] , [ ( "key" , "val" ) ] )
+    (Caption Nothing [])
+    [ ( AlignLeft , ColWidthDefault )
+    , ( AlignLeft , ColWidthDefault )
+    ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Symbol" ] ]
+           , Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Meaning" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "b" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "wingspan" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, Para
+    [ Str "Table"
+    , Space
+    , Str "without"
+    , Space
+    , Str "Caption"
+    , Space
+    , Str "or"
+    , Space
+    , Str "Attr:"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption
+       Nothing
+       [ Plain
+           [ Span ( "" , [ "table-label" ] , [] ) [ Str "Tbl.\160\&1" ]
+           ]
+       ])
     [ ( AlignLeft , ColWidthDefault )
     , ( AlignLeft , ColWidthDefault )
     ]

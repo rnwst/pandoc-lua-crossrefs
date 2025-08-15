@@ -208,6 +208,30 @@ describe('lib.numbering', function()
          assert.is_not_nil(pandoc.utils.stringify(tbl_number.content):find('^Tbl%.\u{A0}'))
       end)
 
+      it('numbers Table with empty Caption', function()
+         local tbl = create_dummy_table()
+         local passed_tbl = numbering.number_fig_or_tbl(tbl)
+         ---@cast passed_tbl Table
+         local caption = passed_tbl.caption.long
+         assert.is_true(#caption > 0)
+         assert.are.equals('Span', caption[1].content[1].tag)
+         local tbl_number = caption[1].content[1]
+         ---@cast tbl_number Span
+         assert.is_not_nil(pandoc.utils.stringify(tbl_number.content):find('^Tbl%.\u{A0}'))
+      end)
+
+      it('numbers Figure with empty Caption', function()
+         local fig = create_dummy_figure()
+         local passed_fig = numbering.number_fig_or_tbl(fig)
+         ---@cast passed_fig Table
+         local caption = passed_fig.caption.long
+         assert.is_true(#caption > 0)
+         assert.are.equals('Span', caption[1].content[1].tag)
+         local fig_number = caption[1].content[1]
+         ---@cast fig_number Span
+         assert.is_not_nil(pandoc.utils.stringify(fig_number.content):find('^Fig%.\u{A0}'))
+      end)
+
       it('numbers subfigures', function()
          local subfigs = pandoc.Figure({
             create_dummy_figure('Subfig 1'),
@@ -219,10 +243,19 @@ describe('lib.numbering', function()
          assert.are.equals(pandoc.utils.stringify(first_subfig_number), '(a)')
       end)
 
-      it("doesn't number unnumbered figures or tables", function()
+      it("doesn't number unnumbered Figures or Tables", function()
          local fig = create_dummy_figure('Figure caption')
          fig.classes:insert('unnumbered')
          local tbl = create_dummy_table('Table caption')
+         tbl.classes:insert('unnumbered')
+         assert.is_nil(numbering.number_fig_or_tbl(fig))
+         assert.is_nil(numbering.number_fig_or_tbl(tbl))
+      end)
+
+      it("doesn't number unnumbered Figures or Tables with empty Captions", function()
+         local fig = create_dummy_figure()
+         fig.classes:insert('unnumbered')
+         local tbl = create_dummy_table()
          tbl.classes:insert('unnumbered')
          assert.is_nil(numbering.number_fig_or_tbl(fig))
          assert.is_nil(numbering.number_fig_or_tbl(tbl))

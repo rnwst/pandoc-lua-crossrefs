@@ -167,11 +167,15 @@ numbering.number_fig_or_tbl = function(fig_or_tbl)
             )
          then
             -- If figure or table caption is not empty, append colon to number.
-            if #elt.caption.long ~= 0 and colon_after_label then
-               caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
-               elt.caption.long[1].content:insert(1, pandoc.Space())
+            if #elt.caption.long ~= 0 then
+               if colon_after_label then
+                  caption_prefix.content[1].text = caption_prefix.content[1].text .. ':'
+                  elt.caption.long[1].content:insert(1, pandoc.Space())
+               end
+               elt.caption.long[1].content:insert(1, caption_prefix)
+            else
+               elt.caption.long:insert(pandoc.Plain(caption_prefix))
             end
-            elt.caption.long[1].content:insert(1, caption_prefix)
          end
       end
 
