@@ -23,8 +23,9 @@ for _, test in ipairs(tests) do
          if not _G.ACCEPT_TEST_RESULTS then
             -- Restore previous version of expected output file.
             io.open(expected_file, 'w'):write(expected):close()
+            -- Compare expected output with actual output.
+            it('produces expected output', function() assert.are.equals(expected, received) end)
          end
-         it('produces expected output', function() assert.are.equals(expected, received) end)
       end)
    end
 end
