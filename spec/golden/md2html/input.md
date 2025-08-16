@@ -1,21 +1,43 @@
-$$E=mc$${#eq:einstein}
+# Equation cross-reference {#sec1}
 
-See #eq:einstein.
+$$E=mc$${#eq:eqid}
+
+See #eq:eqid.
 
 
-See [#fig1, #fig2, and #fig3].
+# Figure cross-reference {#sec2}
+
+See #fig1.
 
 ![test](fig1.jpg){#fig1}
 
-![test](fig2.jpg){#fig2}
 
-![test](fig3.jpg){#fig3}
+# Table cross-reference {#sec3}
 
+See #tbl1.
 
 Symbol    Meaning
 --------  --------
 b         wingspan
 
-Table: Table caption {#tab1 .class key=val}
+Table: Table caption {#tbl1 .class key=val}
 
-See #tab1.
+
+# Groups of cross-references
+
+![test](fig2.jpg){#fig2}
+
+![test](fig3.jpg){#fig3}
+
+See [#sec1, #sec2, and #sec3].
+
+See [#fig1 and #fig2 or #fig3].
+
+See [#fig1; #fig2; #fig3].
+
+See [#fig1\; #fig2\; #fig3].
+
+
+# Cross-reference with suppressed prefix
+
+See -#fig1.
