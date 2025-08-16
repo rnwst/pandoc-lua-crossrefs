@@ -17,28 +17,28 @@ local numbering = require('lib/numbering')
 ---@type table<string, {type: ('sec'|'fig'|'tbl'|'eqn'), number: string}>
 IDs = {}
 
----@type Filter
-return {
-   {
+---@param doc Pandoc
+function Pandoc(doc)
+   return doc:walk({
       Table = parse_attr.parse_table_attr,
       Inlines = parse_attr.parse_equation_attr,
-   },
-   {
-      Span = parse_attr.remove_temp_classes,
-   },
-   {
-      Inlines = crossrefs.parse_crossrefs,
-   },
-   {
-      -- Number cross-referenceable elements and construct table with Ids and numbers.
-      traverse = 'topdown', -- needed for subfigs
-      Pandoc = numbering.number_sections,
-      Span = numbering.number_equations,
-      Figure = numbering.number_fig_or_tbl,
-      Table = numbering.number_fig_or_tbl,
-   },
-   {
-      traverse = 'topdown',
-      Span = crossrefs.write_crossrefs,
-   },
-}
+   })
+      :walk({
+         Span = parse_attr.remove_temp_classes,
+      })
+      :walk({
+         Inlines = crossrefs.parse_crossrefs,
+      })
+      :walk({
+         -- Number cross-referenceable elements and construct table with Ids and numbers.
+         traverse = 'topdown', -- needed for subfigs
+         Pandoc = numbering.number_sections,
+         Span = numbering.number_equations,
+         Figure = numbering.number_fig_or_tbl,
+         Table = numbering.number_fig_or_tbl,
+      })
+      :walk {
+         traverse = 'topdown',
+         Span = crossrefs.write_crossrefs,
+      }
+end
