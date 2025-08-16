@@ -45,7 +45,7 @@ luarocks install cluacov
 ```
 You can pass [busted CLI options](https://lunarmodules.github.io/busted/#usage) to `test.lua`. E.g. to only run golden tests,
 ```console
-./test.lua tests/golden.lua
+./test.lua spec/golden.lua
 ```
 In addition to busted's CLI options, another option has been implemented, `--accept`. Passing this flag to `test.lua` results in the golden test's expected outputs being overwritten with pandoc's actual output.
 

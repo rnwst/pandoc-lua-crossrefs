@@ -1,6 +1,5 @@
 return {
    _all = {
-      ROOT = { 'tests' },
       pattern = '%.lua$',
       coverage = true,
       verbose = true,

@@ -1,7 +1,7 @@
 -- Unfortunately, LuaCATS annotations for busted are missing some `assert` fields.
 ---@diagnostic disable: undefined-field
 
-local base_dir = 'tests/golden/'
+local base_dir = 'spec/golden/'
 -- See https://github.com/jgm/pandoc/issues/11032
 local tests = pandoc.List(pandoc.system.list_directory(base_dir))
 tests = tests:map(function(dir) return pandoc.path.join { base_dir, dir } end)
