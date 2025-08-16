@@ -1,5 +1,6 @@
 {
   "workspace": {
-    "library": ["LuaCATS"]
+    "library": ["LuaCATS"],
+    "ignoreDir": ["spec/helpers/diff_match_patch.lua"]
   }
 }

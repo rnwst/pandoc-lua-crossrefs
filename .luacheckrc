@@ -62,3 +62,7 @@ stds.crossrefs = {
 }
 
 std = 'lua54+pandoc+crossrefs+busted'
+
+exclude_files = {
+   'spec/helpers/diff_match_patch.lua',
+}

@@ -36,6 +36,7 @@ luarocks config local_by_default true
 luarocks install busted
 luarocks install luacov
 luarocks install cluacov
+luarocks install ansicolors
 ```
 
 ### Run tests

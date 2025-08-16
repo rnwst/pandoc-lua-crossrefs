@@ -1,5 +1,7 @@
--- Unfortunately, LuaCATS annotations for busted are missing some `assert` fields.
----@diagnostic disable: undefined-field
+local strings_equal = require('spec.helpers.strings_equal')
+
+-- Register custom assertion.
+assert:register('assertion', 'strings_equal', strings_equal, '', '')
 
 local base_dir = 'spec/golden/'
 -- See https://github.com/jgm/pandoc/issues/11032
@@ -8,7 +10,7 @@ tests = tests:map(function(dir) return pandoc.path.join { base_dir, dir } end)
 for _, test in ipairs(tests) do
    if not test:find('%.disabled$') then
       -- Tag tests by subdirectory.
-      describe(test .. ' #' .. pandoc.path.filename(test), function()
+      it(test .. ' #' .. pandoc.path.filename(test), function()
          local files = pandoc.List(pandoc.system.list_directory(test))
          local input_file =
             pandoc.path.join { test, ({ files:find_if(function(file) return file:find('^input%.') end) })[1] }
@@ -24,7 +26,7 @@ for _, test in ipairs(tests) do
             -- Restore previous version of expected output file.
             io.open(expected_file, 'w'):write(expected):close()
             -- Compare expected output with actual output.
-            it('produces expected output', function() assert.are.equals(expected, received) end)
+            assert.strings_equal(expected, received) ---@diagnostic disable-line: undefined-field
          end
       end)
    end
