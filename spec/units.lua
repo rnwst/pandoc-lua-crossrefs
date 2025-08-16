@@ -1,6 +1,3 @@
--- Unfortunately, LuaCATS annotations for busted are missing some `assert` fields.
----@diagnostic disable: undefined-field
-
 -- Test utils
 local function create_dummy_table(caption_str)
    local caption = pandoc.Caption(caption_str)
@@ -23,7 +20,7 @@ describe('lib.utils', function()
       it(
          'escapes string to be used in HTML',
          function()
-            assert.are.equals(
+            assert.are.equal(
                '&lt;p onclick=&quot;alert(&#39;💥&#39;)&quot;&gt;Click me?&lt;/p&gt; &amp; &lt;3',
                utils.html_escape('<p onclick="alert(\'💥\')">Click me?</p> & <3')
             )
@@ -34,11 +31,11 @@ describe('lib.utils', function()
    describe('is_display_math', function()
       it(
          'says DisplayMath Math is display math',
-         function() assert.are.equals(true, utils.is_display_math(pandoc.Math('DisplayMath', 'E=mc^2'))) end
+         function() assert.are.equal(true, utils.is_display_math(pandoc.Math('DisplayMath', 'E=mc^2'))) end
       )
       it(
          'says not DisplayMath Math is not display math',
-         function() assert.are.equals(false, utils.is_display_math(pandoc.Math('InlineMath', 'E=mc^2'))) end
+         function() assert.are.equal(false, utils.is_display_math(pandoc.Math('InlineMath', 'E=mc^2'))) end
       )
    end)
 end)
@@ -51,8 +48,8 @@ describe('lib.parse_attr', function()
          local tbl = create_dummy_table('A caption. {#id .class key=val}')
          local parsed_tbl = parse_attr.parse_table_attr(tbl)
          ---@cast parsed_tbl Table
-         assert.are.equals(pandoc.Attr('id', { 'class' }, { key = 'val' }), parsed_tbl.attr)
-         assert.are.equals('A caption.', pandoc.utils.stringify(parsed_tbl.caption.long))
+         assert.are.equal(pandoc.Attr('id', { 'class' }, { key = 'val' }), parsed_tbl.attr)
+         assert.are.equal('A caption.', pandoc.utils.stringify(parsed_tbl.caption.long))
       end)
 
       it('parses Table Attr when caption is long', function()
@@ -60,16 +57,16 @@ describe('lib.parse_attr', function()
          local tbl = create_dummy_table(caption .. ' {#id .class key=val}')
          local parsed_tbl = parse_attr.parse_table_attr(tbl)
          ---@cast parsed_tbl Table
-         assert.are.equals(pandoc.Attr('id', { 'class' }, { key = 'val' }), parsed_tbl.attr)
-         assert.are.equals(caption, pandoc.utils.stringify(parsed_tbl.caption.long))
+         assert.are.equal(pandoc.Attr('id', { 'class' }, { key = 'val' }), parsed_tbl.attr)
+         assert.are.equal(caption, pandoc.utils.stringify(parsed_tbl.caption.long))
       end)
 
       it('parses Table Attr when caption is otherwise empty', function()
          local tbl = create_dummy_table('{#id .class key=val}')
          local parsed_tbl = parse_attr.parse_table_attr(tbl)
          ---@cast parsed_tbl Table
-         assert.are.equals(pandoc.Attr('id', { 'class' }, { key = 'val' }), parsed_tbl.attr)
-         assert.are.equals(pandoc.Blocks {}, parsed_tbl.caption.long)
+         assert.are.equal(pandoc.Attr('id', { 'class' }, { key = 'val' }), parsed_tbl.attr)
+         assert.are.equal(pandoc.Blocks {}, parsed_tbl.caption.long)
       end)
    end)
 
@@ -82,7 +79,7 @@ describe('lib.parse_attr', function()
          local inlines = parse_attr.parse_equation_attr(
             pandoc.read(md_equation_with_attr, 'markdown').blocks[1].content --[[@as Inlines]]
          )
-         assert.are.equals(expected_inlines, inlines)
+         assert.are.equal(expected_inlines, inlines)
       end)
 
       it('wraps DisplayMath without Attr in Span', function()
@@ -91,7 +88,7 @@ describe('lib.parse_attr', function()
          local doc = pandoc.read(md_equation_with_attr, 'markdown')
          local inlines = doc:walk({ Inlines = parse_attr.parse_equation_attr })
             :walk({ Span = parse_attr.remove_temp_classes }).blocks[1].content
-         assert.are.equals(expected_inlines, inlines)
+         assert.are.equal(expected_inlines, inlines)
       end)
 
       it('wraps DisplayMath with malformed Attr in Span', function()
@@ -101,7 +98,7 @@ describe('lib.parse_attr', function()
          local doc = pandoc.read(md_equation_with_attr, 'markdown')
          local inlines = doc:walk({ Inlines = parse_attr.parse_equation_attr })
             :walk({ Span = parse_attr.remove_temp_classes }).blocks[1].content
-         assert.are.equals(expected_inlines, inlines)
+         assert.are.equal(expected_inlines, inlines)
       end)
    end)
 end)
@@ -138,7 +135,7 @@ describe('lib.numbering', function()
 
       it("doesn't number sections when `--number-sections` is specified", function()
          _G.PANDOC_WRITER_OPTIONS = pandoc.WriterOptions { number_sections = true }
-         assert.are.equals(header_doc, numbering.number_sections(header_doc))
+         assert.are.equal(header_doc, numbering.number_sections(header_doc))
       end)
 
       it('numbers sections when `--number-sections` is not specified', function()
@@ -163,14 +160,14 @@ describe('lib.numbering', function()
 
       it("temporarily doesn't number equations for DOCX output", function()
          _G.FORMAT = 'docx'
-         assert.are.equals(display_math, numbering.number_equations(equation))
+         assert.are.equal(display_math, numbering.number_equations(equation))
       end)
 
       it('numbers equation', function()
          _G.FORMAT = 'html'
          local result = numbering.number_equations(equation)
          ---@cast result Span
-         assert.are.equals('Span', result.tag)
+         assert.are.equal('Span', result.tag)
          assert.is_true(result.content:at(-1).classes:includes('display-math-label'))
       end)
 
@@ -179,7 +176,7 @@ describe('lib.numbering', function()
          _G.PANDOC_WRITER_OPTIONS = pandoc.WriterOptions { html_math_method = 'katex' }
          local result = numbering.number_equations(unnumbered_equation)
          ---@cast result RawInline
-         assert.are.equals('RawInline', result.tag)
+         assert.are.equal('RawInline', result.tag)
       end)
    end)
 
@@ -190,7 +187,7 @@ describe('lib.numbering', function()
          ---@cast passed_fig Figure
          local caption = passed_fig.caption.long
          assert.is_true(#caption > 0)
-         assert.are.equals('Span', caption[1].content[1].tag)
+         assert.are.equal('Span', caption[1].content[1].tag)
          local fig_number = caption[1].content[1]
          ---@cast fig_number Span
          assert.is_not_nil(pandoc.utils.stringify(fig_number.content):find('^Fig%.\u{A0}'))
@@ -202,7 +199,7 @@ describe('lib.numbering', function()
          ---@cast passed_tbl Table
          local caption = passed_tbl.caption.long
          assert.is_true(#caption > 0)
-         assert.are.equals('Span', caption[1].content[1].tag)
+         assert.are.equal('Span', caption[1].content[1].tag)
          local tbl_number = caption[1].content[1]
          ---@cast tbl_number Span
          assert.is_not_nil(pandoc.utils.stringify(tbl_number.content):find('^Tbl%.\u{A0}'))
@@ -214,7 +211,7 @@ describe('lib.numbering', function()
          ---@cast passed_tbl Table
          local caption = passed_tbl.caption.long
          assert.is_true(#caption > 0)
-         assert.are.equals('Span', caption[1].content[1].tag)
+         assert.are.equal('Span', caption[1].content[1].tag)
          local tbl_number = caption[1].content[1]
          ---@cast tbl_number Span
          assert.is_not_nil(pandoc.utils.stringify(tbl_number.content):find('^Tbl%.\u{A0}'))
@@ -226,7 +223,7 @@ describe('lib.numbering', function()
          ---@cast passed_fig Table
          local caption = passed_fig.caption.long
          assert.is_true(#caption > 0)
-         assert.are.equals('Span', caption[1].content[1].tag)
+         assert.are.equal('Span', caption[1].content[1].tag)
          local fig_number = caption[1].content[1]
          ---@cast fig_number Span
          assert.is_not_nil(pandoc.utils.stringify(fig_number.content):find('^Fig%.\u{A0}'))
@@ -240,7 +237,7 @@ describe('lib.numbering', function()
          }, pandoc.Caption('Subfigures'))
          local first_subfig_number = numbering.number_fig_or_tbl(subfigs).content[1].caption.long[1].content[1]
          ---@cast first_subfig_number Span
-         assert.are.equals(pandoc.utils.stringify(first_subfig_number), '(a)')
+         assert.are.equal(pandoc.utils.stringify(first_subfig_number), '(a)')
       end)
 
       it("doesn't number unnumbered Figures or Tables", function()
