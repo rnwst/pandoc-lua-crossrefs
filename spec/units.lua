@@ -235,7 +235,9 @@ describe('lib.numbering', function()
             create_dummy_figure('Subfig 2'),
             create_dummy_figure('Subfig 3'),
          }, pandoc.Caption('Subfigures'))
-         local first_subfig_number = numbering.number_fig_or_tbl(subfigs).content[1].caption.long[1].content[1]
+         local numbered_subfigs = numbering.number_fig_or_tbl(subfigs)
+         ---@cast numbered_subfigs Figure
+         local first_subfig_number = numbered_subfigs.content[1].caption.long[1].content[1]
          ---@cast first_subfig_number Span
          assert.equal(pandoc.utils.stringify(first_subfig_number), '(a)')
       end)
