@@ -122,8 +122,8 @@ local figure_number = 0
 local table_number = 0
 ---Number figure or table.
 ---@param fig_or_tbl (Figure | Table)
----@return (Figure | Table), false  Numbered Figure or Table, or `nil` if unnumbered
----@overload fun(fig_or_tbl: Figure | Table): nil
+---@return (Figure | Table), false # Numbered Figure or Table, or `nil` if unnumbered
+---@return nil
 numbering.number_fig_or_tbl = function(fig_or_tbl)
    if not fig_or_tbl.classes:includes('unnumbered') then
       ---@type string
