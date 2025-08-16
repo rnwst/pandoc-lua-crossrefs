@@ -4,3 +4,6 @@
 [submodule "LuaCATS/busted"]
 	path = LuaCATS/busted
 	url = https://github.com/LuaCATS/busted.git
+[submodule "LuaCATS/luassert"]
+	path = LuaCATS/luassert
+	url = https://github.com/LuaCATS/luassert.git
