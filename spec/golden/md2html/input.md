@@ -35,7 +35,6 @@ See [#fig1 and #fig2 or #fig3].
 
 See [#fig1; #fig2; #fig3].
 
-**Currently fails:**
 See [#fig1\; #fig2\; #fig3].
 
 

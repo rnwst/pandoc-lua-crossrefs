@@ -1,2 +1,3 @@
 filters:
   - init.lua
+from: markdown-all_symbols_escapable
