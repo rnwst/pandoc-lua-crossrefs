@@ -1,12 +1,10 @@
 ---Require a module from the filter directory.
-local old_require = require
-pandoc.require = function(modname) -- luacheck: ignore 122
+local require = function(modname) -- luacheck: ignore 122
    return pandoc.system.with_working_directory(
       pandoc.path.directory(PANDOC_SCRIPT_FILE),
-      function() return old_require(modname) end
+      function() return require(modname) end
    )
 end
-require = pandoc.require -- luacheck: ignore 121
 
 local parse_attr = require('lib/parse-attr')
 local crossrefs = require('lib/crossrefs')
