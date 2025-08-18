@@ -37,6 +37,8 @@ See [#fig1; #fig2; #fig3].
 
 See [#fig1\; #fig2\; #fig3].
 
+See [#fig1; #fig2].
+
 
 # Groups of cross-references of non-uniform types
 
@@ -45,6 +47,8 @@ See [#sec1; #fig2; #fig3].
 See [#sec1; #sec2; #fig3].
 
 See [#eq1; #fig2; #sec3].
+
+See [#eq1; #fig1].
 
 **Currently fails:**
 See [#eq1; #fig1; #fig2; #fig3].
