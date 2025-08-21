@@ -48,7 +48,7 @@ crossrefs.parse_crossrefs = function(inlines)
    inlines = new_inlines
 
    -- Now separate out any opening or closing brackets in Strs into separate
-   -- Strs.
+   -- Strs, in case crossref groups don't begin and end with cross-references.
    inlines = inlines:walk {
       Str = function(str)
          if str.text:find('^%[.') then
@@ -59,7 +59,7 @@ crossrefs.parse_crossrefs = function(inlines)
       end,
    }
 
-   -- Now create cross-ref groups. Crossref Groups are represented by Spans of
+   -- Now create crossref groups. Crossref Groups are represented by Spans of
    -- class 'cross-ref-group'.
    ---@type List<Inline>
    new_inlines = pandoc.List {}
@@ -170,7 +170,6 @@ crossrefs.write_crossrefs = function(span)
    local function resolve_crossref(crossref, suppress_prefix)
       local id = crossref.attributes.id
       local target = IDs[id]
-      ---@type string
       local crossref_text = ''
       if target ~= nil then
          if not crossref.classes:includes('suppress-prefix') and not suppress_prefix then
@@ -215,9 +214,9 @@ crossrefs.write_crossrefs = function(span)
          and inlines[3].classes:includes('suppress-prefix')
       then
          ---@cast inlines[3] Span
-         inlines[3] = resolve_crossref(inlines[3])
-         inlines[3].content = inlines
-         return inlines[3]
+         local resolved_crossref = resolve_crossref(inlines[3])
+         resolved_crossref.content = pandoc.List { inlines[1], inlines[2] } .. resolved_crossref.content
+         return resolved_crossref
       end
 
       -- Traverse inlines in reverse order to avoid problems with shifting indices.

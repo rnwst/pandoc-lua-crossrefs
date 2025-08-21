@@ -48,6 +48,7 @@ The syntax used for cross-referencing items is briefly presented below using a s
 | 4. `See [#figid; #figid2; #figid3].` | See Figs. [1](#), [2](#), and [3](#). |
 | 5. `See [#tblid\; #tblid2\; #tblid3].` | See Tbls. [1](#); [2](#); [3](#). |
 | 6. `See -#figid.` | See [1](#). |
+| 7. `See [Figure -#figid].` | See [Figure 1](#). |
 
 No particular Id naming convention is assumed - the user is free to use a naming convention like `#sec:id` for section Ids, or `#fig:id` for figure Ids, but can also choose not to do so. The cross-reference's prefix ("Sec.", "Fig.", "Eqn.", or "Tbl.") is inferred from the *type* of element that the Id references.
 

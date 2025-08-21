@@ -58,6 +58,8 @@ See [#eq1; #fig1; #fig2; #fig3].
 
 See -#fig1.
 
+See [Figure -#fig1].
+
 
 # Pathological cases
 
