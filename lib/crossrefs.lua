@@ -1,5 +1,3 @@
-local utils = require('lib.utils')
-
 local crossrefs = {}
 
 ---Check if AST element is a cross-reference (a cross-reference is a Span with class 'cross-ref').
@@ -188,14 +186,9 @@ crossrefs.write_crossrefs = function(span)
          crossref_text = '??'
          pandoc.log.warn('Cross-referenced element with id ' .. tostring(id) .. ' could not be resolved.')
       end
-      if utils.html_formats:includes(FORMAT) then
-         local link = pandoc.Link(crossref_text, '#' .. id)
-         link.attr = pandoc.Attr('', { 'cross-ref' })
-         return link
-      else
-         local crossref_span = pandoc.Span(crossref_text, pandoc.Attr('', { 'cross-ref' }))
-         return crossref_span
-      end
+      local link = pandoc.Link(crossref_text, '#' .. id)
+      link.attr = pandoc.Attr('', { 'cross-ref' })
+      return link
    end
 
    if is_crossref(span) then return resolve_crossref(span) end

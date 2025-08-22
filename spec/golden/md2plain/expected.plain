@@ -1,0 +1,63 @@
+1 Equation cross-reference
+
+E = mc
+(1)
+
+See Eqn. 1.
+
+2 Figure cross-reference
+
+See Fig. 1.
+
+[test]
+
+3 Table cross-reference
+
+See Tbl. 1.
+
+  Symbol   Meaning
+  -------- ----------
+  b        wingspan
+
+  : Tbl. 1: Table caption {#tbl1}
+
+4 Groups of cross-references
+
+[test]
+
+[test]
+
+See Secs. 1, 2, and 3.
+
+See Figs. 1 and 2 or 3.
+
+See Figs. 1, 2, and 3.
+
+See Figs. 1, 2, and 3.
+
+See Figs. 1 and 2.
+
+5 Groups of cross-references of non-uniform types
+
+See Sec. 1 and Figs. 2 and 3.
+
+See Secs. 1 and 2 and Fig. 3.
+
+See Eqn. 1, Fig. 2, and Sec. 3.
+
+See Eqn. 1 and Fig. 1.
+
+See Eqn. 1 and Figs. 1, 2, and 3.
+
+6 Cross-reference with suppressed prefix
+
+See 1.
+
+See Figure 1.
+
+7 Pathological cases
+
+Single cross-reference in group: See Eqn. 1.
+
+Cross-reference group that doesn’t begin and end in a cross-reference:
+See in particular Secs. 1, 2, and 3 as well.
