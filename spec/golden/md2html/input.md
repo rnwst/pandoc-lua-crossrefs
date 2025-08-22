@@ -63,5 +63,7 @@ See [Figure -#fig1].
 
 # Pathological cases
 
+Single cross-reference in group: See [#eq1].
+
 **Currently fails:**
 Cross-reference group that doesn't begin and end in a cross-reference: See [in particular #sec1, #sec2, and #sec3 as well.]
