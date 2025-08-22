@@ -35,8 +35,12 @@ function Pandoc(doc)
          Figure = numbering.number_fig_or_tbl,
          Table = numbering.number_fig_or_tbl,
       })
-      :walk {
-         traverse = 'topdown',
+      :walk({
+         -- Resolve cross-reference groups.
          Span = crossrefs.write_crossrefs,
+      })
+      :walk {
+         -- Resolve single cross-references.
+         Link = crossrefs.write_crossref,
       }
 end

@@ -1,9 +1,12 @@
-local crossrefs = {}
+local M = {}
 
 ---Check if AST element is a cross-reference (a cross-reference is a Span with class 'cross-ref').
 ---@param inline Inline
 ---@return boolean
-local function is_crossref(inline) return inline and inline.tag == 'Span' and inline.classes:includes('cross-ref') end
+local function is_crossref(inline)
+   local is_crossref_link = inline and inline.tag == 'Link' and inline.attributes['reference-type'] ~= nil
+   return is_crossref_link
+end
 
 ---Check if AST element is a cross-reference group (a Span with class 'cross-ref-group').
 ---@param inline Inline
@@ -15,16 +18,15 @@ end
 ---Parse a cross-reference in Pandoc's Markdown.
 ---@param str Str
 ---@return Inline[] | nil
-crossrefs.parse_crossref = function(str)
+M.parse_crossref = function(str)
    local opening_bracket, prefix_suppressor, id, closing_bracket, punctuation =
       str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%p%)]-)$')
    if not id or id == '' then return end
    local only_internal_punctuation = id:find('^%a[%a%d-_:%.]*%a$') or id:find('%a')
    if not only_internal_punctuation then return end
 
-   local crossref = pandoc.Span({}, pandoc.Attr('', { 'cross-ref' }))
-   crossref.attributes.id = id
-   if prefix_suppressor == '-' then crossref.classes:insert('suppress-prefix') end
+   local crossref = pandoc.Link({}, '#' .. id, '', pandoc.Attr('', {}, { ['reference-type'] = 'ref+label' }))
+   if prefix_suppressor == '-' then crossref.attributes['reference-type'] = 'ref' end
    local elts = pandoc.List { crossref }
    if opening_bracket == '[' then elts:insert(1, pandoc.Str('[')) end
    if closing_bracket == ']' then elts:insert(pandoc.Str(']')) end
@@ -36,9 +38,9 @@ end
 ---Parse cross-references in Inlines.
 ---@param inlines Inlines
 ---@return nil | Inline[], boolean?
-crossrefs.parse_crossrefs = function(inlines)
+M.parse_crossrefs = function(inlines)
    -- Parse cross-references into Spans.
-   local new_inlines = inlines:walk { Str = crossrefs.parse_crossref }
+   local new_inlines = inlines:walk { Str = M.parse_crossref }
 
    -- Early return if no cross-references were found!
    if new_inlines == inlines then return end
@@ -125,7 +127,7 @@ end
 ---between them.
 ---@param inlines Inlines | Inline[]
 ---@param matches fun(elt: Inline): boolean
-crossrefs.insert_separators = function(inlines, matches)
+M.insert_separators = function(inlines, matches)
    ---@type List<integer>
    local adjacent_indices = pandoc.List {}
    for i = 2, #inlines do
@@ -143,11 +145,16 @@ crossrefs.insert_separators = function(inlines, matches)
    end
 end
 
+---Get cross-reference target
+---@param crossref Link
+---@return { type: 'eqn'|'fig'|'sec'|'tbl', number: string }
+local function get_target(crossref) return IDs[crossref.target:sub(2)] end
+
 ---Get type of cross-reference target.
----@param crossref Span
+---@param crossref Link
 ---@return string
 local function get_target_type(crossref)
-   local target = IDs[crossref.attributes.id]
+   local target = get_target(crossref)
    return target and target.type
 end
 
@@ -156,43 +163,47 @@ end
 ---@return boolean
 local function is_resolved_crossref(elt) return elt.tag == 'Link' and elt.classes:includes('cross-ref') end
 
+---Resolve cross-reference.
+---@param crossref         Link     cross-reference
+---@param suppress_prefix? boolean  whether to suppress prefixing the referenced object's type (e.g. 'Fig.' or 'Tbl.')
+---@return Link
+local function resolve_crossref(crossref, suppress_prefix)
+   local target = get_target(crossref)
+   local crossref_text = ''
+   if target ~= nil then
+      if crossref.attributes['reference-type'] == 'ref+label' and not suppress_prefix then
+         if target.type == 'sec' then
+            crossref_text = 'Sec.\u{A0}' -- 0xA0 is a non-breaking space
+         elseif target.type == 'fig' then
+            crossref_text = 'Fig.\u{A0}'
+         elseif target.type == 'tbl' then
+            crossref_text = 'Tbl.\u{A0}'
+         elseif target.type == 'eqn' then
+            crossref_text = 'Eqn.\u{A0}'
+         end
+      end
+      crossref_text = crossref_text .. target.number
+   else
+      crossref_text = '??'
+      pandoc.log.warn('Cross-referenced element with id ' .. tostring(crossref.target) .. ' could not be resolved.')
+   end
+   local link = pandoc.Link(crossref_text, crossref.target)
+   link.attr = pandoc.Attr('', { 'cross-ref' })
+   return link
+end
+
+---Resolve single cross-references.
+---@param link Link
+---@return Link?
+M.write_crossref = function(link)
+   if is_crossref(link) then return resolve_crossref(link) end
+end
+
 ---Resolve cross-references.
 ---@param span Span
 ---@return (Link | Span), false? | nil, nil
 ---@overload fun(Span): nil
-crossrefs.write_crossrefs = function(span)
-   ---Resolve cross-reference.
-   ---@param crossref Span cross-reference
-   ---@param suppress_prefix? boolean whether to suppress prefixing the referenced object's type (e.g. 'Fig.' or 'Tbl.')
-   ---@return Link | Span
-   local function resolve_crossref(crossref, suppress_prefix)
-      local id = crossref.attributes.id
-      local target = IDs[id]
-      local crossref_text = ''
-      if target ~= nil then
-         if not crossref.classes:includes('suppress-prefix') and not suppress_prefix then
-            if target.type == 'sec' then
-               crossref_text = 'Sec.\u{A0}' -- 0xA0 is a non-breaking space
-            elseif target.type == 'fig' then
-               crossref_text = 'Fig.\u{A0}'
-            elseif target.type == 'tbl' then
-               crossref_text = 'Tbl.\u{A0}'
-            elseif target.type == 'eqn' then
-               crossref_text = 'Eqn.\u{A0}'
-            end
-         end
-         crossref_text = crossref_text .. target.number
-      else
-         crossref_text = '??'
-         pandoc.log.warn('Cross-referenced element with id ' .. tostring(id) .. ' could not be resolved.')
-      end
-      local link = pandoc.Link(crossref_text, '#' .. id)
-      link.attr = pandoc.Attr('', { 'cross-ref' })
-      return link
-   end
-
-   if is_crossref(span) then return resolve_crossref(span) end
-
+M.write_crossrefs = function(span)
    if is_crossref_group(span) then
       local inlines = span.content
 
@@ -204,7 +215,7 @@ crossrefs.write_crossrefs = function(span)
          and inlines[1].tag == 'Str'
          and inlines[2].tag == 'Space'
          and is_crossref(inlines[3])
-         and inlines[3].classes:includes('suppress-prefix')
+         and inlines[3].attributes['reference-type'] ~= 'ref+label'
       then
          ---@cast inlines[3] Span
          local resolved_crossref = resolve_crossref(inlines[3])
@@ -217,7 +228,7 @@ crossrefs.write_crossrefs = function(span)
          i = i + 1
          if is_crossref(inlines[i]) then
             local crossref = inlines[i]
-            ---@cast crossref Span
+            ---@cast crossref Link
             local target_type = get_target_type(crossref)
             if not target_type then
                inlines[i] = resolve_crossref(crossref)
@@ -232,7 +243,7 @@ crossrefs.write_crossrefs = function(span)
                j = j + 1
                if is_crossref(inlines[j]) then
                   local next_crossref = inlines[j]
-                  ---@cast next_crossref Span
+                  ---@cast next_crossref Link
                   if get_target_type(next_crossref) == target_type then
                      crossref_indices:insert(j)
                   else
@@ -242,10 +253,10 @@ crossrefs.write_crossrefs = function(span)
             end
             -- First resolve crossrefs, then insert separators.
             if #crossref_indices == 1 then
-               inlines[crossref_indices[1]] = resolve_crossref(inlines[crossref_indices[1]] --[[@as Span]])
+               inlines[crossref_indices[1]] = resolve_crossref(inlines[crossref_indices[1]] --[[@as Link]])
             else
                for _, idx in ipairs(crossref_indices) do
-                  inlines[idx] = resolve_crossref(inlines[idx] --[[@as Span]], true)
+                  inlines[idx] = resolve_crossref(inlines[idx] --[[@as Link]], true)
                end
                local crossrefs_of_a_kind = pandoc.Span(
                   { table.unpack(inlines, crossref_indices:at(1), crossref_indices:at(-1)) },
@@ -264,7 +275,7 @@ crossrefs.write_crossrefs = function(span)
                end
                crossrefs_of_a_kind.content:insert(1, pandoc.Str(prefix))
 
-               crossrefs.insert_separators(crossrefs_of_a_kind.content, is_resolved_crossref)
+               M.insert_separators(crossrefs_of_a_kind.content, is_resolved_crossref)
 
                for _ = crossref_indices:at(1), crossref_indices:at(-1) do
                   table.remove(inlines, crossref_indices[1])
@@ -275,7 +286,7 @@ crossrefs.write_crossrefs = function(span)
          ::continue::
       end
       -- If there are any adjacent resolved cross-refs, they also need separators between them.
-      crossrefs.insert_separators(
+      M.insert_separators(
          inlines,
          function(elt)
             return is_resolved_crossref(elt) or (elt.tag == 'Span' and elt.classes:includes('crossrefs-of-a-kind'))
@@ -286,4 +297,4 @@ crossrefs.write_crossrefs = function(span)
    end
 end
 
-return crossrefs
+return M

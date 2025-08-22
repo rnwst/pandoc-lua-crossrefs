@@ -1,7 +1,7 @@
-local utils = {}
+local M = {}
 
 ---@type List<string>
-utils.html_formats = pandoc.List {
+M.html_formats = pandoc.List {
    'chunkedhtml',
    'html',
    'html5',
@@ -16,7 +16,7 @@ utils.html_formats = pandoc.List {
 ---HTML-escape string.
 ---@param str string
 ---@return string
-utils.html_escape = function(str)
+M.html_escape = function(str)
    local entities = {
       ['&'] = '&amp;',
       ['<'] = '&lt;',
@@ -31,6 +31,6 @@ end
 ---Check if AST element is DisplayMath.
 ---@param inline Inline
 ---@return boolean
-utils.is_display_math = function(inline) return inline.tag == 'Math' and inline.mathtype == 'DisplayMath' end
+M.is_display_math = function(inline) return inline.tag == 'Math' and inline.mathtype == 'DisplayMath' end
 
-return utils
+return M

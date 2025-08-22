@@ -1,0 +1,59 @@
+\documentclass{article}
+\usepackage{cleveref}
+
+\begin{document}
+
+\section{Equation cross-reference}\label{sec1}
+
+$$
+E=mc
+\label{eq1}
+$$
+
+\textbf{Currently fails:}
+See \cref{eq1}.
+
+
+\section{Figure cross-reference}\label{sec2}
+
+See \cref{fig1}.
+
+\begin{figure}
+\centering
+\includegraphics{fig1.jpg}
+\caption{test}\label{fig1}
+\end{figure}
+
+
+\section{Table cross-reference}\label{sec3}
+
+\textbf{Currently fails:}
+See \cref{tbl1}.
+
+\begin{table}
+\caption{Table caption}\label{tbl1}
+\begin{tabular}{ll}
+\hline
+Symbol & Meaning \\
+b & wingspan \\
+\end{tabular}
+\end{table}
+
+
+\section{Group of cross-references}
+
+\textbf{Currently fails:}
+See \cref{sec1,sec2,sec3}.
+
+
+\section{Group of cross-references of non-uniform types}
+
+\textbf{Currently fails:}
+See \cref{eq1,sec1,sec2}.
+
+
+\section{Dumb reference}
+
+See \ref{fig1}.
+
+\end{document}

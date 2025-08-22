@@ -4,3 +4,4 @@ indent_width = 3
 quote_style = "AutoPreferSingle"
 call_parentheses = "NoSingleTable"
 collapse_simple_statement = "Always"
+column_width = 120

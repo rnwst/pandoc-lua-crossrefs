@@ -1,12 +1,12 @@
 local utils = require('lib.utils')
 
-local parse_attr = {}
+local M = {}
 
 ---Parse a Table Attr if it is present in the Table's caption. Pandoc does not
 ---yet support Attrs to be used in Table captions.
 ---@param tbl Table
 ---@return Table | nil
-parse_attr.parse_table_attr = function(tbl)
+M.parse_table_attr = function(tbl)
    if #tbl.caption.long > 0 then
       -- When writing the caption back to Markdown, we need to ensure the
       -- Markdown isn't wrapped, otherwise lines other than the first won't be
@@ -26,7 +26,7 @@ end
 ---and the Pandoc Math AST element does not include an Attr.
 ---@param inlines Inlines
 ---@return Inline[] | nil
-parse_attr.parse_equation_attr = function(inlines)
+M.parse_equation_attr = function(inlines)
    -- The Math element in pandoc's AST does not currently include an Attr.
    -- We can use a Span containing a Math element to represent Math with an
    -- Attr instead.
@@ -74,11 +74,11 @@ end
 ---would cause problems. See https://github.com/jgm/pandoc/issues/10802.
 ---@param span Span
 ---@return Span | nil
-parse_attr.remove_temp_classes = function(span)
+M.remove_temp_classes = function(span)
    if span.classes:includes('temp-class-to-prevent-empty-attr') then
       span.classes = {}
       return span
    end
 end
 
-return parse_attr
+return M

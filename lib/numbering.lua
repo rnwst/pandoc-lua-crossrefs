@@ -1,8 +1,8 @@
 local utils = require('lib.utils')
 
-local numbering = {}
+local M = {}
 
-numbering.number_sections = function(doc)
+M.number_sections = function(doc)
    -- Pandoc numbers sections automatically if the `--number-sections` option
    -- is passed, however we need to have access to these numbers to number
    -- corresponding cross-references. If the `--number-sections` option is
@@ -75,7 +75,7 @@ local equation_number = 0
 ---Number equations (DisplayMath elements).
 ---@param span Span
 ---@return Span | RawInline | Math | nil
-numbering.number_equations = function(span)
+M.number_equations = function(span)
    -- A Span containing a Math element is Math with an Attr.
    if #span.content == 1 and utils.is_display_math(span.content[1]) then
       if FORMAT == 'docx' then
@@ -124,7 +124,7 @@ local table_number = 0
 ---@param fig_or_tbl (Figure | Table)
 ---@return (Figure | Table), false  Numbered Figure or Table, or `nil` if unnumbered
 ---@overload fun(fig_or_tbl: Figure | Table): nil
-numbering.number_fig_or_tbl = function(fig_or_tbl)
+M.number_fig_or_tbl = function(fig_or_tbl)
    if not fig_or_tbl.classes:includes('unnumbered') then
       ---@type string
       local type
@@ -200,4 +200,4 @@ numbering.number_fig_or_tbl = function(fig_or_tbl)
    end
 end
 
-return numbering
+return M
