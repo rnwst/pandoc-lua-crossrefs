@@ -52,7 +52,7 @@ The syntax used for cross-referencing items is briefly presented below using a s
 
 No particular Id naming convention is assumed - the user is free to use a naming convention like `#sec:id` for section Ids, or `#fig:id` for figure Ids, but can also choose not to do so. The cross-reference's prefix ("Sec.", "Fig.", "Eqn.", or "Tbl.") is inferred from the *type* of element that the Id references.
 
-Note that for example 5 to work the `all_symbols_escapable` extension must be disabled (using `--from=markdown-all_symbols_escapable`). If this extension is not disabled, a double backslash (`\\\\`) must be used instead to escape the semicolon. This limitation cannot be resolved without upstream changes to pandoc.
+Note that for example 5 to work the `all_symbols_escapable` extension must be disabled (using `--from=markdown-all_symbols_escapable`). If this extension is not disabled, a double backslash (`\\`) must be used instead to escape the semicolon. This limitation cannot be resolved without upstream changes to pandoc.
 
 
 ## License
