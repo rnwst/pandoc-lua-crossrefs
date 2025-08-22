@@ -2,7 +2,7 @@
 
 Welcome to pandoc-lua-crossrefs! Thank you for contributing to this project.
 
-Before submitting a pull request, make sure to [run tests](#testing) and to install [pre-commit hooks](#pre-commit-hooks). See also the [commit message guidelines](#commit-message-guidelines). If you have added new functionality, ensure that code coverage remains at 100% by also adding corresponding tests (see [Generating an HTML report](#generating-an-html-report) for how to measure coverage).
+Before submitting a pull request, make sure to [run tests](#testing) and to install [pre-commit hooks](#pre-commit-hooks). See also the [commit message guidelines](#commit-message-guidelines). If you have added new functionality, ensure that code coverage remains at 100% by also adding corresponding tests (see [Generating an HTML report](#generating-an-html-report) for how to measure coverage). Test coverage is checked as part of the [pre-commit hooks](#pre-commit-hooks).
 
 ## Testing
 
@@ -56,12 +56,15 @@ Ensure the location of the Luacov binary location (`~/.luarocks/bin`) is on your
 ```console
 luacov
 ```
-The HTML report provides test coverage information, including which lines of code are not currently covered. This project aims to achieve 100% test coverage.
+The HTML report provides test coverage information, including which lines of code are not currently covered. This project aims to achieve 100% test coverage. To verify that this is the case, run
+```console
+./ci-coverage.lua
+```
 
 
 ## Pre-commit hooks
 
-[pre-commit](https://pre-commit.com/) is used to manage git hooks. To install the pre-commit hooks, run `pre-commit install`. Note that running the hooks requires [`stylua`](https://github.com/JohnnyMorganz/StyLua), [`luacheck`](https://github.com/lunarmodules/luacheck), and [`lua-language-server`](https://github.com/LuaLS/lua-language-server) to be installed. Tests are also run in a pre-commit hook.
+[pre-commit](https://pre-commit.com/) is used to manage git hooks. To install the pre-commit hooks, run `pre-commit install`. Note that running the hooks requires [`stylua`](https://github.com/JohnnyMorganz/StyLua), [`luacheck`](https://github.com/lunarmodules/luacheck), and [`lua-language-server`](https://github.com/LuaLS/lua-language-server) to be installed. Tests are also run in a pre-commit hook, and test coverage is checked (which must be 100%).
 
 
 ## Commit message guidelines

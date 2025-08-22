@@ -37,3 +37,12 @@ repos:
         pass_filenames: false
         types:
           - lua
+
+      - id: coverage
+        name: Test coverage
+        description: Fails if test coverage is less than 100%.
+        entry: ./ci-coverage.lua
+        language: system
+        pass_filenames: false
+        types:
+          - lua
