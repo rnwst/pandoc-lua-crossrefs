@@ -19,4 +19,7 @@ arg = pandoc.List(arg):filter(function(arg) -- luacheck: ignore 121
    return true
 end)
 
+-- Delete `luacov.stats.out`, otherwise the coverage will only be added to.
+os.remove('luacov.stats.out')
+
 require('busted.runner') { standalone = false }
