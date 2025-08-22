@@ -54,7 +54,7 @@ crossrefs.parse_crossrefs = function(inlines)
          if str.text:find('^%[.') then
             return { pandoc.Str('['), pandoc.Str(str.text:sub(2)) }
          elseif str.text:find('.%]$') then
-            return { pandoc.Str(str.text:sub(1, -1)), pandoc.Str(']') }
+            return { pandoc.Str(str.text:sub(1, -2)), pandoc.Str(']') }
          end
       end,
    }
@@ -186,7 +186,7 @@ crossrefs.write_crossrefs = function(span)
          crossref_text = crossref_text .. target.number
       else
          crossref_text = '??'
-         pandoc.log.warn('Cross-referenced element with id "' .. id .. '" could not be resolved.')
+         pandoc.log.warn('Cross-referenced element with id ' .. tostring(id) .. ' could not be resolved.')
       end
       if utils.html_formats:includes(FORMAT) then
          local link = pandoc.Link(crossref_text, '#' .. id)
@@ -219,8 +219,9 @@ crossrefs.write_crossrefs = function(span)
          return resolved_crossref
       end
 
-      -- Traverse inlines in reverse order to avoid problems with shifting indices.
-      for i = #inlines, 1, -1 do
+      local i = 0
+      while i < #inlines do
+         i = i + 1
          if is_crossref(inlines[i]) then
             local crossref = inlines[i]
             ---@cast crossref Span
@@ -232,14 +233,15 @@ crossrefs.write_crossrefs = function(span)
             ---@type List<integer>
             local crossref_indices = pandoc.List { i }
             local j = i
+            ---@type boolean
             local found_different_target_type = false
-            while not found_different_target_type and j > 1 do
-               j = j - 1
+            while not found_different_target_type and j < #inlines do
+               j = j + 1
                if is_crossref(inlines[j]) then
                   local next_crossref = inlines[j]
                   ---@cast next_crossref Span
                   if get_target_type(next_crossref) == target_type then
-                     crossref_indices:insert(1, j)
+                     crossref_indices:insert(j)
                   else
                      found_different_target_type = true
                   end
@@ -247,16 +249,17 @@ crossrefs.write_crossrefs = function(span)
             end
             -- First resolve crossrefs, then insert separators.
             if #crossref_indices == 1 then
-               j = crossref_indices[1]
-               inlines[j] = resolve_crossref(inlines[j] --[[@as Span]])
+               inlines[crossref_indices[1]] = resolve_crossref(inlines[crossref_indices[1]] --[[@as Span]])
             else
                for _, idx in ipairs(crossref_indices) do
                   inlines[idx] = resolve_crossref(inlines[idx] --[[@as Span]], true)
                end
-               local crossrefs_of_a_kind =
-                  pandoc.Span({ table.unpack(inlines, j, i) }, pandoc.Attr('', { 'crossrefs-of-a-kind' }))
+               local crossrefs_of_a_kind = pandoc.Span(
+                  { table.unpack(inlines, crossref_indices:at(1), crossref_indices:at(-1)) },
+                  pandoc.Attr('', { 'crossrefs-of-a-kind' })
+               )
                crossrefs_of_a_kind.content:insert(1, pandoc.Space())
-               local prefix = '??'
+               local prefix = ''
                if target_type == 'sec' then
                   prefix = 'Secs.'
                elseif target_type == 'fig' then
@@ -270,10 +273,10 @@ crossrefs.write_crossrefs = function(span)
 
                crossrefs.insert_separators(crossrefs_of_a_kind.content, is_resolved_crossref)
 
-               for _ = j, i do
-                  table.remove(inlines, j)
+               for _ = crossref_indices:at(1), crossref_indices:at(-1) do
+                  table.remove(inlines, crossref_indices[1])
                end
-               inlines:insert(j, crossrefs_of_a_kind)
+               inlines:insert(crossref_indices[1], crossrefs_of_a_kind)
             end
          end
          ::continue::
