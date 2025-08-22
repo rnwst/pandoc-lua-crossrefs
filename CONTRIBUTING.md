@@ -44,9 +44,13 @@ luarocks install ansicolors
 ```console
 ./test.lua
 ```
-You can pass [busted CLI options](https://lunarmodules.github.io/busted/#usage) to `test.lua`. E.g. to only run golden tests,
+You can pass [busted CLI options](https://lunarmodules.github.io/busted/#usage) to `test.lua`. E.g. to only run unit tests,
 ```console
-./test.lua spec/golden.lua
+./test.lua spec/units
+```
+or to run a single golden test:
+```console
+./test.lua --tags=latex2html
 ```
 In addition to busted's CLI options, another option has been implemented, `--accept`. Passing this flag to `test.lua` results in the golden test's expected outputs being overwritten with pandoc's actual output.
 

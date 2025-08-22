@@ -5,7 +5,7 @@ assert:register('assertion', 'strings_equal', strings_equal, '', '')
 
 local base_dir = 'spec/golden/'
 -- See https://github.com/jgm/pandoc/issues/11032
-local tests = pandoc.List(pandoc.system.list_directory(base_dir))
+local tests = pandoc.List(pandoc.system.list_directory(base_dir)):filter(function(f) return not f:match('%.lua$') end)
 tests = tests:map(function(dir) return pandoc.path.join { base_dir, dir } end)
 for _, test in ipairs(tests) do
    if not test:find('%.disabled$') then
