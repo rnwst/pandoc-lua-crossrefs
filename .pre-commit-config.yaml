@@ -29,10 +29,10 @@ repos:
         types:
           - lua
 
-      - id: tests
-        name: Tests
-        description: Runs existing unit and golden tests.
-        entry: ./test.lua
+      - id: unit-tests
+        name: Unit tests
+        description: Runs unit tests.
+        entry: ./test.lua spec/units
         language: system
         pass_filenames: false
         types:
@@ -46,3 +46,14 @@ repos:
         pass_filenames: false
         types:
           - lua
+        require_serial: true
+
+      - id: golden-tests
+        name: Golden tests
+        description: Runs golden tests.
+        entry: ./test.lua spec/golden
+        language: system
+        pass_filenames: false
+        types:
+          - lua
+        fail_fast: true
