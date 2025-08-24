@@ -3,7 +3,7 @@ local M = {}
 ---Check if AST element is a cross-reference (a cross-reference is a Span with class 'cross-ref').
 ---@param inline Inline
 ---@return boolean
-local function is_crossref(inline)
+M._is_crossref = function(inline)
    local is_crossref_link = inline and inline.tag == 'Link' and inline.attributes['reference-type'] ~= nil
    return is_crossref_link
 end
@@ -11,36 +11,38 @@ end
 ---Check if AST element is a cross-reference group (a Span with class 'cross-ref-group').
 ---@param inline Inline
 ---@return boolean
-local function is_crossref_group(inline)
+M._is_crossref_group = function(inline)
    return inline and inline.tag == 'Span' and inline.classes:includes('cross-ref-group')
 end
 
 ---Parse a cross-reference in Pandoc's Markdown.
 ---@param str Str
 ---@return Inline[] | nil
-M.parse_crossref = function(str)
-   local opening_bracket, prefix_suppressor, id, closing_bracket, punctuation =
-      str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%p%)]-)$')
+M._parse_crossref = function(str)
+   local opening_bracket, prefix_suppressor, id, closing_bracket1, punctuation, closing_bracket2 =
+      str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%.!:?,;)]-)(%]?)$')
    if not id or id == '' then return end
-   local only_internal_punctuation = id:find('^%a[%a%d-_:%.]*%a$') or id:find('%a')
+   local only_internal_punctuation = id:find('^[%a%d]+[-_:%.]*[%a%d]+$') or id:find('^[%a%d]+$')
    if not only_internal_punctuation then return end
+   if #closing_bracket1 ~= 0 and #closing_bracket2 ~= 0 then return end
 
    local crossref = pandoc.Link({}, '#' .. id, '', pandoc.Attr('', {}, { ['reference-type'] = 'ref+label' }))
    if prefix_suppressor == '-' then crossref.attributes['reference-type'] = 'ref' end
    local elts = pandoc.List { crossref }
    if opening_bracket == '[' then elts:insert(1, pandoc.Str('[')) end
-   if closing_bracket == ']' then elts:insert(pandoc.Str(']')) end
+   if closing_bracket1 == ']' then elts:insert(pandoc.Str(']')) end
    if punctuation ~= '' then elts:insert(pandoc.Str(punctuation)) end
+   if closing_bracket2 == ']' then elts:insert(pandoc.Str(']')) end
 
    return elts
 end
 
 ---Parse cross-references in Inlines.
 ---@param inlines Inlines
----@return nil | Inline[], boolean?
+---@return (Inline[] | Inlines | nil), boolean?
 M.parse_crossrefs = function(inlines)
-   -- Parse cross-references into Spans.
-   local new_inlines = inlines:walk { Str = M.parse_crossref }
+   -- Parse cross-references into Links.
+   local new_inlines = inlines:walk { Str = M._parse_crossref }
 
    -- Early return if no cross-references were found!
    if new_inlines == inlines then return end
@@ -89,11 +91,11 @@ M.parse_crossrefs = function(inlines)
                group_valid = false
                break
             else
-               if is_crossref(elt) then at_least_one_crossref = true end
+               if M._is_crossref(elt) then at_least_one_crossref = true end
                group_content:insert(inlines[j])
             end
             j = j + 1
-            if is_crossref(elt) and inlines[j] and inlines[j].tag == 'Str' then
+            if M._is_crossref(elt) and inlines[j] and inlines[j].tag == 'Str' then
                if inlines[j].text == ';' and inlines[j + 1] and inlines[j + 1].tag == 'Space' then
                   -- Skip punctuation following crossref if it is ';'.
                   j = j + 2
@@ -111,7 +113,7 @@ M.parse_crossrefs = function(inlines)
             new_inlines:insert(crossref_group)
             i = j
          else
-            inlines:insert(inlines[i])
+            new_inlines:insert(inlines[i])
          end
       else
          new_inlines:insert(inlines[i])
@@ -127,7 +129,7 @@ end
 ---between them.
 ---@param inlines Inlines | Inline[]
 ---@param matches fun(elt: Inline): boolean
-M.insert_separators = function(inlines, matches)
+M._insert_separators = function(inlines, matches)
    ---@type List<integer>
    local adjacent_indices = pandoc.List {}
    for i = 2, #inlines do
@@ -137,10 +139,10 @@ M.insert_separators = function(inlines, matches)
    if #adjacent_indices == 1 then
       inlines:insert(adjacent_indices[1], pandoc.Str(' and '))
    elseif #adjacent_indices > 1 then
-      inlines:insert(adjacent_indices[#adjacent_indices], ', and ')
+      inlines:insert(adjacent_indices[#adjacent_indices], pandoc.Str(', and '))
       -- Traverse list in reverse to avoid problems with changing indices.
       for i = #adjacent_indices - 1, 1, -1 do
-         inlines:insert(adjacent_indices[i], ', ')
+         inlines:insert(adjacent_indices[i], pandoc.Str(', '))
       end
    end
 end
@@ -148,27 +150,27 @@ end
 ---Get cross-reference target
 ---@param crossref Link
 ---@return { type: 'eqn'|'fig'|'sec'|'tbl', number: string }
-local function get_target(crossref) return IDs[crossref.target:sub(2)] end
+M._get_target = function(crossref) return IDs[crossref.target:sub(2)] end
 
 ---Get type of cross-reference target.
 ---@param crossref Link
 ---@return string
-local function get_target_type(crossref)
-   local target = get_target(crossref)
+M._get_target_type = function(crossref)
+   local target = M._get_target(crossref)
    return target and target.type
 end
 
 ---Whether element is a resolved cross-reference.
 ---@param elt Inline
 ---@return boolean
-local function is_resolved_crossref(elt) return elt.tag == 'Link' and elt.classes:includes('cross-ref') end
+M._is_resolved_crossref = function(elt) return elt.tag == 'Link' and elt.classes:includes('cross-ref') end
 
 ---Resolve cross-reference.
 ---@param crossref         Link     cross-reference
 ---@param suppress_prefix? boolean  whether to suppress prefixing the referenced object's type (e.g. 'Fig.' or 'Tbl.')
 ---@return Link
-local function resolve_crossref(crossref, suppress_prefix)
-   local target = get_target(crossref)
+M._resolve_crossref = function(crossref, suppress_prefix)
+   local target = M._get_target(crossref)
    local crossref_text = ''
    if target ~= nil then
       if crossref.attributes['reference-type'] == 'ref+label' and not suppress_prefix then
@@ -196,15 +198,14 @@ end
 ---@param link Link
 ---@return Link?
 M.write_crossref = function(link)
-   if is_crossref(link) then return resolve_crossref(link) end
+   if M._is_crossref(link) then return M._resolve_crossref(link) end
 end
 
 ---Resolve cross-references.
 ---@param span Span
----@return (Link | Span), false? | nil, nil
----@overload fun(Span): nil
+---@return (Link | Span), false? | nil
 M.write_crossrefs = function(span)
-   if is_crossref_group(span) then
+   if M._is_crossref_group(span) then
       local inlines = span.content
 
       -- Special case: If a cross-ref group is made up of a single Str, followed
@@ -214,11 +215,11 @@ M.write_crossrefs = function(span)
          #inlines == 3
          and inlines[1].tag == 'Str'
          and inlines[2].tag == 'Space'
-         and is_crossref(inlines[3])
+         and M._is_crossref(inlines[3])
          and inlines[3].attributes['reference-type'] ~= 'ref+label'
       then
          ---@cast inlines[3] Span
-         local resolved_crossref = resolve_crossref(inlines[3])
+         local resolved_crossref = M._resolve_crossref(inlines[3])
          resolved_crossref.content = pandoc.List { inlines[1], inlines[2] } .. resolved_crossref.content
          return resolved_crossref
       end
@@ -226,12 +227,12 @@ M.write_crossrefs = function(span)
       local i = 0
       while i < #inlines do
          i = i + 1
-         if is_crossref(inlines[i]) then
+         if M._is_crossref(inlines[i]) then
             local crossref = inlines[i]
             ---@cast crossref Link
-            local target_type = get_target_type(crossref)
+            local target_type = M._get_target_type(crossref)
             if not target_type then
-               inlines[i] = resolve_crossref(crossref)
+               inlines[i] = M._resolve_crossref(crossref)
                goto continue
             end
             ---@type List<integer>
@@ -241,10 +242,10 @@ M.write_crossrefs = function(span)
             local found_different_target_type = false
             while not found_different_target_type and j < #inlines do
                j = j + 1
-               if is_crossref(inlines[j]) then
+               if M._is_crossref(inlines[j]) then
                   local next_crossref = inlines[j]
                   ---@cast next_crossref Link
-                  if get_target_type(next_crossref) == target_type then
+                  if M._get_target_type(next_crossref) == target_type then
                      crossref_indices:insert(j)
                   else
                      found_different_target_type = true
@@ -253,10 +254,10 @@ M.write_crossrefs = function(span)
             end
             -- First resolve crossrefs, then insert separators.
             if #crossref_indices == 1 then
-               inlines[crossref_indices[1]] = resolve_crossref(inlines[crossref_indices[1]] --[[@as Link]])
+               inlines[crossref_indices[1]] = M._resolve_crossref(inlines[crossref_indices[1]] --[[@as Link]])
             else
                for _, idx in ipairs(crossref_indices) do
-                  inlines[idx] = resolve_crossref(inlines[idx] --[[@as Link]], true)
+                  inlines[idx] = M._resolve_crossref(inlines[idx] --[[@as Link]], true)
                end
                local crossrefs_of_a_kind = pandoc.Span(
                   { table.unpack(inlines, crossref_indices:at(1), crossref_indices:at(-1)) },
@@ -275,7 +276,7 @@ M.write_crossrefs = function(span)
                end
                crossrefs_of_a_kind.content:insert(1, pandoc.Str(prefix))
 
-               M.insert_separators(crossrefs_of_a_kind.content, is_resolved_crossref)
+               M._insert_separators(crossrefs_of_a_kind.content, M._is_resolved_crossref)
 
                for _ = crossref_indices:at(1), crossref_indices:at(-1) do
                   table.remove(inlines, crossref_indices[1])
@@ -286,15 +287,15 @@ M.write_crossrefs = function(span)
          ::continue::
       end
       -- If there are any adjacent resolved cross-refs, they also need separators between them.
-      M.insert_separators(
+      M._insert_separators(
          inlines,
          function(elt)
-            return is_resolved_crossref(elt) or (elt.tag == 'Span' and elt.classes:includes('crossrefs-of-a-kind'))
+            return M._is_resolved_crossref(elt) or (elt.tag == 'Span' and elt.classes:includes('crossrefs-of-a-kind'))
          end
       )
       -- Don't process crossrefs in cross-ref-groups again.
       return span, false
-   end
+   end ---@diagnostic disable-line: missing-return
 end
 
 return M
