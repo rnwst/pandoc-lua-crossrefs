@@ -22,7 +22,7 @@ M._parse_crossref = function(str)
    local opening_bracket, prefix_suppressor, id, closing_bracket1, punctuation, closing_bracket2 =
       str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%.!:?,;)]-)(%]?)$')
    if not id or id == '' then return end
-   local only_internal_punctuation = id:find('^[%a%d]+[-_:%.]*[%a%d]+$') or id:find('^[%a%d]+$')
+   local only_internal_punctuation = id:find('^[%a%d]+[%a%d%-_:%.]*[%a%d]+$') or id:find('^[%a%d]+$')
    if not only_internal_punctuation then return end
    if #closing_bracket1 ~= 0 and #closing_bracket2 ~= 0 then return end
 

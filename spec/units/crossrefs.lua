@@ -32,6 +32,7 @@ end)
 describe('_parse_crossref', function()
    it('parses simple cross-reference', function()
       local inlines = crossrefs._parse_crossref(pandoc.Str('#fig1'))
+      assert.is_not_nil(inlines)
       assert.equal(1, #inlines)
       assert.equal('Link', inlines[1].tag) ---@diagnostic disable-line: need-check-nil
       assert.equal('#fig1', inlines[1].target) ---@diagnostic disable-line: need-check-nil
@@ -40,12 +41,14 @@ describe('_parse_crossref', function()
 
    it('parses cross-reference with opening bracket', function()
       local inlines = crossrefs._parse_crossref(pandoc.Str('[#sec'))
+      assert.is_not_nil(inlines)
       assert.equal(2, #inlines)
       assert.equal(pandoc.Str('['), inlines[1]) ---@diagnostic disable-line: need-check-nil
    end)
 
    it('parses cross-reference with closing bracket', function()
       local inlines = crossrefs._parse_crossref(pandoc.Str('#sec]'))
+      assert.is_not_nil(inlines)
       assert.equal(2, #inlines)
       assert.equal(pandoc.Str(']'), inlines[2]) ---@diagnostic disable-line: need-check-nil
    end)
@@ -54,6 +57,7 @@ describe('_parse_crossref', function()
       local punctuation = { '.', ':', '?', '!', ';' }
       for _, p in ipairs(punctuation) do
          local inlines = crossrefs._parse_crossref(pandoc.Str('#sec' .. p))
+         assert.is_not_nil(inlines)
          assert.equal(2, #inlines)
          assert.equal(pandoc.Str(p), inlines[2]) ---@diagnostic disable-line: need-check-nil
       end
@@ -61,6 +65,7 @@ describe('_parse_crossref', function()
 
    it('parses cross-reference with closing bracket before punctuation', function()
       local inlines = crossrefs._parse_crossref(pandoc.Str('#sec].'))
+      assert.is_not_nil(inlines)
       assert.equal(3, #inlines)
       assert.equal(pandoc.Str(']'), inlines[2]) ---@diagnostic disable-line: need-check-nil
       assert.equal(pandoc.Str('.'), inlines[3]) ---@diagnostic disable-line: need-check-nil
@@ -68,9 +73,18 @@ describe('_parse_crossref', function()
 
    it('parses cross-reference with closing bracket after punctuation', function()
       local inlines = crossrefs._parse_crossref(pandoc.Str('#sec.]'))
+      assert.is_not_nil(inlines)
       assert.equal(3, #inlines)
       assert.equal(pandoc.Str('.'), inlines[2]) ---@diagnostic disable-line: need-check-nil
       assert.equal(pandoc.Str(']'), inlines[3]) ---@diagnostic disable-line: need-check-nil
+   end)
+
+   it('parses cross-reference with multiple, non-adjacent internal punctuation', function()
+      local inlines = crossrefs._parse_crossref(pandoc.Str('#fig:equal-heights'))
+      assert.is_not_nil(inlines)
+      assert.equal(1, #inlines)
+      assert.equal('Link', inlines[1].tag) ---@diagnostic disable-line: need-check-nil
+      assert.equal('#fig:equal-heights', inlines[1].target) ---@diagnostic disable-line: need-check-nil
    end)
 
    it("doesn't parse invalid cross-references", function()
