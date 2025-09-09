@@ -127,7 +127,7 @@ local table_number = 0
 M.number_fig_or_tbl = function(fig_or_tbl)
    if not fig_or_tbl.classes:includes('unnumbered') then
       ---@type string
-      local type
+      local _type
       ---@type integer
       local number
       ---@type string
@@ -140,7 +140,7 @@ M.number_fig_or_tbl = function(fig_or_tbl)
       local colon_after_label = true
 
       if fig_or_tbl.tag == 'Figure' then
-         type = 'fig'
+         _type = 'fig'
          figure_number = figure_number + 1
          number = figure_number
          label_class = 'figure-label'
@@ -148,7 +148,7 @@ M.number_fig_or_tbl = function(fig_or_tbl)
       end
 
       if fig_or_tbl.tag == 'Table' then
-         type = 'tbl'
+         _type = 'tbl'
          table_number = table_number + 1
          number = table_number
          label_class = 'table-label'
@@ -158,7 +158,7 @@ M.number_fig_or_tbl = function(fig_or_tbl)
       ---Add Fig or Tbl to table of Ids, prepend label to caption.
       ---@param elt (Figure | Table)
       local function process_fig_or_tbl(elt)
-         if elt.identifier ~= '' then IDs[elt.identifier] = { type = type, number = number_formatter(number) } end
+         if elt.identifier ~= '' then IDs[elt.identifier] = { type = _type, number = number_formatter(number) } end
          local caption_prefix = pandoc.Span({ pandoc.Str(label_formatter(number)) }, pandoc.Attr('', { label_class }))
          if
             not (
@@ -182,7 +182,7 @@ M.number_fig_or_tbl = function(fig_or_tbl)
       process_fig_or_tbl(fig_or_tbl)
 
       -- Number subfigs.
-      if type == 'fig' then
+      if _type == 'fig' then
          number = 0
          number_formatter = function(num) return figure_number .. label_formatter(num) end
          label_formatter = function(num) return string.format('(%s)', string.char(96 + num)) end
