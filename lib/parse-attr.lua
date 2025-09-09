@@ -15,7 +15,7 @@ M.parse_table_attr = function(tbl)
       -- The syntax for defining a table attr is the same as for a header.
       local md_header = '# ' .. md_caption
       local header = pandoc.read(md_header, 'markdown-auto_identifiers').blocks[1]
-      tbl.attr = header.attr
+      if not (#tbl.attr.identifier > 0) then tbl.attr = header.attr end
       tbl.caption.long = header.content ~= pandoc.Inlines {} and pandoc.Plain(header.content) or pandoc.Blocks {}
       return tbl
    end
