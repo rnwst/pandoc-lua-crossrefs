@@ -26,7 +26,9 @@ for _, test in ipairs(tests) do
             -- Restore previous version of expected output file.
             io.open(expected_file, 'w'):write(expected):close()
             -- Compare expected output with actual output.
-            assert.strings_equal(expected, received) ---@diagnostic disable-line: undefined-field
+            -- Remove `\r` chars, in case tests are run on WSL.
+            ---@diagnostic disable-next-line: undefined-field
+            assert.strings_equal(expected:gsub('\r', ''), received:gsub('\r', ''))
          end
       end)
    end
