@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  LUA_VERSION: "5.4.7"
+
+jobs:
+  stylua:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Format lua code
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: 2.3.0
+          args: --check .
+
+  luacheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Luacheck
+        uses: lunarmodules/luacheck@v1.2.0
+
+  luals:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install lua-language-server
+        run: |
+          wget https://github.com/LuaLS/lua-language-server/releases/download/3.15.0/lua-language-server-3.15.0-linux-x64.tar.gz
+          mkdir /tmp/lua-language-server
+          tar xf lua-language-server-* -C /tmp/lua-language-server
+          rm lua-language-server-*
+
+      - name: Run lua-language-server in command line
+        run: |
+          /tmp/lua-language-server/bin/lua-language-server --check=. --checklevel=Information
+
+  tests:
+    runs-on: ubuntu-latest
+    container:
+      image: pandoc/core:3.7.0.2
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify pandoc installation
+        run: |
+          pandoc --version
+
+      - name: Ensure pandoc supports dynamic loading of C libraries
+        run: |
+          ldd $(which pandoc)
+
+      - name: Install build tools
+        run: |
+          apk update
+          apk add git make gcc musl-dev
+
+      - name: Install lua
+        run: |
+          cd /tmp
+          wget https://www.lua.org/ftp/lua-${{ env.LUA_VERSION }}.tar.gz
+          tar zxf lua-${{ env.LUA_VERSION }}.tar.gz
+          cd lua-${{ env.LUA_VERSION }}
+          make linux
+          make install
+
+      - name: Install luarocks
+        run: |
+          cd /tmp
+          git clone https://github.com/luarocks/luarocks.git
+          cd luarocks
+          ./configure --lua-version=5.4 \
+                      --with-lua=/usr/local \
+                      --prefix=/usr/local
+          make
+          make install
+
+      - name: Install proper wget so luarocks doesn't error out
+        run: |
+          apk add wget
+
+      - name: Install luarocks modules
+        run: |
+          luarocks install busted
+          luarocks install luacov
+          luarocks install cluacov
+          luarocks install ansicolors
+
+      - name: Run tests
+        run: |
+          pandoc lua test.lua
+
+      - name: Check test coverage
+        run: |
+          pandoc lua ci-coverage.lua
