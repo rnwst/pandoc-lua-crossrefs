@@ -36,6 +36,15 @@ describe('parse_table_attr', function()
       assert.equal(pandoc.Attr('id', { 'class' }, { key = 'val' }), parsed_tbl.attr)
       assert.equal(pandoc.Blocks {}, parsed_tbl.caption.long)
    end)
+
+   it("doesn't apply Attr when it is empty (to avoid overwriting existing Attr)", function()
+      local tbl = create_dummy_table('Caption without Attr.')
+      -- The Id might have been set programmatically by a filter, and we
+      -- shouldn't overwrite it!
+      tbl.identifier = 'my-id'
+      local parsed_tbl = parse_attr.parse_table_attr(tbl)
+      assert.equal(parsed_tbl.identifier, 'my-id') ---@diagnostic disable-line: need-check-nil
+   end)
 end)
 
 describe('parse_equation_attr and remove_temp_classes', function()
