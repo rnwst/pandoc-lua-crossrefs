@@ -19,8 +19,8 @@ end
 ---@param str Str
 ---@return Inline[] | nil
 M._parse_crossref = function(str)
-   local opening_bracket, prefix_suppressor, id, closing_bracket1, punctuation, closing_bracket2 =
-      str.text:match('^(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%.!:?,;)]-)(%]?)$')
+   local opening_parentheses, opening_bracket, prefix_suppressor, id, closing_bracket1, punctuation, closing_bracket2, closing_parentheses = --luacheck: ignore 631
+      str.text:match('^(%(?)(%[?)(%-?)#([%a%d-_:%.]-)(%]?)([\\%.!:?,;)]-)(%]?)(%)?)$')
    if not id or id == '' then return end
    local only_internal_punctuation = id:find('^[%a%d]+[%a%d%-_:%.]*[%a%d]+$') or id:find('^[%a%d]+$')
    if not only_internal_punctuation then return end
@@ -33,6 +33,8 @@ M._parse_crossref = function(str)
    if closing_bracket1 == ']' then elts:insert(pandoc.Str(']')) end
    if punctuation ~= '' then elts:insert(pandoc.Str(punctuation)) end
    if closing_bracket2 == ']' then elts:insert(pandoc.Str(']')) end
+   if opening_parentheses == '(' then elts:insert(1, pandoc.Str('(')) end
+   if closing_parentheses == ')' then elts:insert(pandoc.Str(')')) end
 
    return elts
 end

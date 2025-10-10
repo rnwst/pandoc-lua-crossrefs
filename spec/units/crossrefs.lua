@@ -87,6 +87,15 @@ describe('_parse_crossref', function()
       assert.equal('#fig:equal-heights', inlines[1].target) ---@diagnostic disable-line: need-check-nil
    end)
 
+   it('parses cross-reference in parentheses', function()
+      local inlines = crossrefs._parse_crossref(pandoc.Str('(#fig1)'))
+      assert.is_not_nil(inlines)
+      assert.equal(3, #inlines)
+      assert.equal('Str', inlines[1].tag) ---@diagnostic disable-line: need-check-nil
+      assert.equal('Link', inlines[2].tag) ---@diagnostic disable-line: need-check-nil
+      assert.equal('Str', inlines[3].tag) ---@diagnostic disable-line: need-check-nil
+   end)
+
    it("doesn't parse invalid cross-references", function()
       -- Space in cross-reference
       assert.is_nil(crossrefs._parse_crossref(pandoc.Str('# fig1')))
