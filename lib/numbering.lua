@@ -2,6 +2,26 @@ local utils = require('lib.utils')
 
 local M = {}
 
+---Move class `unnumbered` from Image to containing Figure.
+---@param fig Figure
+---@return Figure?
+M.move_unnumbered_class = function(fig)
+   if
+      #fig.content == 1
+      and fig.content[1].tag == 'Plain'
+      and #fig.content[1].content == 1
+      and fig.content[1].content[1].tag == 'Image'
+   then
+      local img = fig.content[1].content[1]
+      ---@cast img Image
+      if img.classes:includes('unnumbered') then
+         img.classes:remove(img.classes:find('unnumbered')[2])
+         fig.classes:insert('unnumbered')
+         return fig
+      end
+   end
+end
+
 local docx_bmk_id = 100000 -- large number to prevent collisions with bookmark Ids used by pandoc.
 
 local function get_docx_bmk_id()
