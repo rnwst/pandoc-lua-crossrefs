@@ -60,17 +60,17 @@ end)
 
 describe('number_equations', function()
    local display_math = pandoc.Math('DisplayMath', 'E=mc^2')
-   local equation = pandoc.Span(display_math, pandoc.Attr('id'))
-   local unnumbered_equation = pandoc.Span(display_math, pandoc.Attr('id', { 'unnumbered' }))
    _G.IDs = {}
 
    it("temporarily doesn't number equations for DOCX output", function()
       _G.FORMAT = 'docx'
+      local equation = pandoc.Span(display_math, pandoc.Attr('id'))
       assert.equal(display_math, numbering.number_equations(equation))
    end)
 
    it('numbers equation', function()
       _G.FORMAT = 'html'
+      local equation = pandoc.Span(display_math, pandoc.Attr('id'))
       local result = numbering.number_equations(equation)
       ---@cast result Span
       assert.equal('Span', result.tag)
@@ -80,6 +80,7 @@ describe('number_equations', function()
    it("doesn't number unnumbered equation", function()
       _G.FORMAT = 'html'
       _G.PANDOC_WRITER_OPTIONS = pandoc.WriterOptions { html_math_method = 'katex' }
+      local unnumbered_equation = pandoc.Span(display_math, pandoc.Attr('id', { 'unnumbered' }))
       local result = numbering.number_equations(unnumbered_equation)
       ---@cast result RawInline
       assert.equal('RawInline', result.tag)
@@ -137,15 +138,15 @@ describe('number_fig_or_tbl', function()
 
    it('numbers subfigures', function()
       local subfigs = pandoc.Figure({
-         create_dummy_figure('Subfig 1'),
-         create_dummy_figure('Subfig 2'),
-         create_dummy_figure('Subfig 3'),
+         create_dummy_figure(),
+         create_dummy_figure(),
+         create_dummy_figure(),
       }, pandoc.Caption('Subfigures'))
       local numbered_subfigs = numbering.number_fig_or_tbl(subfigs)
       ---@cast numbered_subfigs Figure
       local first_subfig_number = numbered_subfigs.content[1].caption.long[1].content[1]
       ---@cast first_subfig_number Span
-      assert.equal(pandoc.utils.stringify(first_subfig_number), '(a)')
+      assert.equal('(a)', pandoc.utils.stringify(first_subfig_number))
    end)
 
    it("doesn't number unnumbered Figures or Tables", function()
