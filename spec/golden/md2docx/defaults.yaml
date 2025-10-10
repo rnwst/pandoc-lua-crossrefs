@@ -1,0 +1,6 @@
+filters:
+  - init.lua
+from: markdown-all_symbols_escapable
+wrap: none
+resource-path: [./resources]
+reference-doc: reference-doc.docx

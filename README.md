@@ -55,6 +55,13 @@ No particular Id naming convention is assumed - the user is free to use a naming
 Note that for example 5 to work the `all_symbols_escapable` extension must be disabled (using `--from=markdown-all_symbols_escapable`). If this extension is not disabled, a double backslash (`\\`) must be used instead to escape the semicolon. This limitation cannot be resolved without upstream changes to pandoc.
 
 
+### DOCX output
+
+When referencing sections in DOCX output, sections must be numbered. This must be done by associating the `Heading` paragraph styles with a numbering scheme. Using the `--number-sections` option does **not** work, as this numbers headings manually instead of utilising a numbering scheme. An appropriate `reference-doc.docx` styles can be found under `resources/reference-doc.docx`.
+
+Equations are automatically numbered. This requires the presence of an `Equation Caption` paragraph style. The `reference-doc.docx` under `resources/reference-doc.docx` already contains this style.
+
+
 ## License
 
 © 2025 R. N. West. Released under the [GPL](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) version 2 or greater.

@@ -163,40 +163,128 @@ end
 ---Whether element is a resolved cross-reference.
 ---@param elt Inline
 ---@return boolean
-M._is_resolved_crossref = function(elt) return elt.tag == 'Link' and elt.classes:includes('cross-ref') end
+M._is_resolved_crossref = function(elt)
+   if FORMAT == 'docx' then return elt.tag == 'Span' and elt.classes:includes('cross-ref') end
+   return elt.tag == 'Link' and elt.classes:includes('cross-ref')
+end
 
 ---Resolve cross-reference.
 ---@param crossref         Link     cross-reference
 ---@param suppress_prefix? boolean  whether to suppress prefixing the referenced object's type (e.g. 'Fig.' or 'Tbl.')
----@return Link
+---@return Link | Span
 M._resolve_crossref = function(crossref, suppress_prefix)
+   ---@type boolean
+   local include_prefix = crossref.attributes['reference-type'] == 'ref+label' and not suppress_prefix
+   ---@type { type: 'eqn'|'fig'|'sec'|'tbl', number: string }
    local target = M._get_target(crossref)
-   local crossref_text = ''
+   ---@type string
+   local crossref_label = ''
+   ---@type string
+   local crossref_number
    if target ~= nil then
-      if crossref.attributes['reference-type'] == 'ref+label' and not suppress_prefix then
+      if include_prefix then
          if target.type == 'sec' then
-            crossref_text = 'Sec.\u{A0}' -- 0xA0 is a non-breaking space
+            crossref_label = 'Sec.\u{A0}' -- 0xA0 is a non-breaking space
          elseif target.type == 'fig' then
-            crossref_text = 'Fig.\u{A0}'
+            crossref_label = 'Fig.\u{A0}'
          elseif target.type == 'tbl' then
-            crossref_text = 'Tbl.\u{A0}'
+            crossref_label = 'Tbl.\u{A0}'
          elseif target.type == 'eqn' then
-            crossref_text = 'Eqn.\u{A0}'
+            crossref_label = 'Eqn.\u{A0}'
          end
       end
-      crossref_text = crossref_text .. target.number
+      crossref_number = target.number
    else
-      crossref_text = '??'
       pandoc.log.warn('Cross-referenced element with id ' .. tostring(crossref.target) .. ' could not be resolved.')
+      crossref_number = '??'
    end
-   local link = pandoc.Link(crossref_text, crossref.target)
-   link.attr = pandoc.Attr('', { 'cross-ref' })
-   return link
+
+   if FORMAT == 'docx' then
+      local span = pandoc.Span({}, pandoc.Attr('', { 'cross-ref' }))
+      -- Equation and section prefixes are outside the field code. In the case
+      -- of equations, the caption contains no prefix, and so we only use the
+      -- bookmarked number.
+      local sec_or_eqn = target and (target.type == 'sec' or target.type == 'eqn')
+      if not include_prefix or sec_or_eqn then
+         span.content:insert(pandoc.RawInline(
+            'openxml',
+            string.format(
+               [[
+
+         <w:r>
+           <w:rPr>
+             <w:noProof />
+           </w:rPr>
+           <w:t xml:space="preserve">%s</w:t>
+         </w:r>]],
+               crossref_label
+            )
+         ))
+      end
+      -- See https://support.microsoft.com/en-gb/office/field-codes-ref-field-b2531c23-05d6-4e3b-b54f-aee24447ceb2
+      local ref_flags = '\\h'
+      if target and target.type == 'sec' then ref_flags = ref_flags .. ' \\r' end
+      local bmk_type = '_label'
+      if not include_prefix or sec_or_eqn then bmk_type = '_number' end
+      span.content:insert(pandoc.RawInline(
+         'openxml',
+         string.format(
+            [[
+
+         <w:r>
+           <w:fldChar w:fldCharType="begin" />
+         </w:r>
+         <w:r>
+           <w:instrText xml:space="preserve"> REF %s %s </w:instrText>
+         </w:r>
+         <w:r>
+           <w:fldChar w:fldCharType="separate" />
+         </w:r>]],
+            crossref.target:sub(2) .. bmk_type,
+            ref_flags
+         )
+      ))
+      if include_prefix and not sec_or_eqn then
+         span.content:insert(pandoc.RawInline(
+            'openxml',
+            string.format(
+               [[
+
+         <w:r>
+           <w:rPr>
+             <w:noProof />
+           </w:rPr>
+           <w:t xml:space="preserve">%s</w:t>
+         </w:r>]],
+               crossref_label
+            )
+         ))
+      end
+      span.content:insert(pandoc.RawInline(
+         'openxml',
+         string.format(
+            [[
+
+         <w:r>
+           <w:t>%s</w:t>
+         </w:r>
+         <w:r>
+           <w:fldChar w:fldCharType="end" />
+         </w:r>]],
+            crossref_number
+         )
+      ))
+      return span
+   else
+      local link = pandoc.Link(crossref_label .. crossref_number, crossref.target)
+      link.attr = pandoc.Attr('', { 'cross-ref' })
+      return link
+   end
 end
 
 ---Resolve single cross-references.
 ---@param link Link
----@return Link?
+---@return (Link | Span)?
 M.write_crossref = function(link)
    if M._is_crossref(link) then return M._resolve_crossref(link) end
 end

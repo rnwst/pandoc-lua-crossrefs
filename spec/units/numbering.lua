@@ -56,17 +56,19 @@ describe('number_sections', function()
          get_header_numbers(numbering.number_sections(header_doc))
       )
    end)
+
+   it('numbers sections when output format is DOCX', function()
+      _G.FORMAT = 'docx'
+      local numbered_doc = header_doc:walk { Pandoc = numbering.number_sections }
+      local contains_raw_inline = false
+      numbered_doc:walk { RawInline = function() contains_raw_inline = true end }
+      assert.is_true(contains_raw_inline)
+   end)
 end)
 
 describe('number_equations', function()
    local display_math = pandoc.Math('DisplayMath', 'E=mc^2')
    _G.IDs = {}
-
-   it("temporarily doesn't number equations for DOCX output", function()
-      _G.FORMAT = 'docx'
-      local equation = pandoc.Span(display_math, pandoc.Attr('id'))
-      assert.equal(display_math, numbering.number_equations(equation))
-   end)
 
    it('numbers equation', function()
       _G.FORMAT = 'html'
@@ -87,7 +89,20 @@ describe('number_equations', function()
    end)
 end)
 
+describe('number_docx_equations', function()
+   it('numbers DOCX equations', function()
+      _G.FORMAT = 'docx'
+      local para = pandoc.Para { pandoc.Span { pandoc.Math('DisplayMath', 'E=mc^2') } }
+      local paras = numbering.number_docx_equations(para)
+      assert.is_not_nil(paras)
+      ---@cast paras Blocks
+      assert.equal('RawBlock', paras[2].tag)
+   end)
+end)
+
 describe('number_fig_or_tbl', function()
+   _G.FORMAT = 'html'
+
    it('numbers Figure', function()
       local fig = create_dummy_figure('Figure caption')
       local passed_fig = numbering.number_fig_or_tbl(fig)
@@ -165,5 +180,15 @@ describe('number_fig_or_tbl', function()
       tbl.classes:insert('unnumbered')
       assert.is_nil(numbering.number_fig_or_tbl(fig))
       assert.is_nil(numbering.number_fig_or_tbl(tbl))
+   end)
+
+   it('numbers Tables for DOCX output', function()
+      _G.FORMAT = 'docx'
+      local tbl = create_dummy_table('Table caption')
+      tbl.identifier = 'tbl:1'
+      local passed_tbl = numbering.number_fig_or_tbl(tbl)
+      ---@cast passed_tbl Table
+      local caption = passed_tbl.caption.long
+      assert.is_true(#caption > 0)
    end)
 end)
