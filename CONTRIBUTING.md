@@ -29,7 +29,7 @@ sudo make install
 ```
 You will also need to ensure that your `pandoc` binary supports [dynamic loading of C libraries](https://github.com/jgm/pandoc/issues/6850). To verify this, run `ldd $(which pandoc)`, and if the output is `not a dynamic executable` rather than a list of shared libraries, *dynamic loading of C libraries is not supported*. See also [pandoc's documentation on installation](https://pandoc.org/installing.html#linux).
 
-### Install `busted` and `luacov`
+### Install required luarocks modules
 
 ```console
 luarocks config local_by_default true
