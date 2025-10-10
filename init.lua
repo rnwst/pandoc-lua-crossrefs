@@ -41,6 +41,9 @@ function Pandoc(doc)
          Inlines = crossrefs.parse_crossrefs,
       })
       :walk({
+         Figure = numbering.move_unnumbered_class,
+      })
+      :walk({
          -- Number cross-referenceable elements and construct table with Ids and numbers.
          traverse = 'topdown', -- needed for subfigs
          Pandoc = numbering.number_sections,

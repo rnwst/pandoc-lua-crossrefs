@@ -23,6 +23,11 @@ b         wingspan
 Table: Table caption {#tbl1 .class key=val}
 
 
+# Unnumbered figure
+
+![Figure caption.](img.jpg){.unnumbered}
+
+
 # Groups of cross-references
 
 ![test](fig2.jpg){#fig2}

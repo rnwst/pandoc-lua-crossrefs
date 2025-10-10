@@ -15,6 +15,15 @@ local function create_dummy_figure(caption_str)
    return pandoc.Figure(pandoc.Plain(pandoc.Image('alt text', 'test.jpg')), pandoc.Caption(caption_str))
 end
 
+describe('move_unnumbered_class', function()
+   it('moves `unnumbered` class', function()
+      local fig = create_dummy_figure('Caption')
+      fig.content[1].content[1].classes:insert('unnumbered')
+      local modified_fig = numbering.move_unnumbered_class(fig)
+      assert.is_true(modified_fig.classes:includes('unnumbered')) ---@diagnostic disable-line: need-check-nil
+   end)
+end)
+
 describe('number_sections', function()
    _G.IDs = {}
    local header_doc = pandoc.Pandoc {
