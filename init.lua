@@ -17,6 +17,19 @@ IDs = {}
 
 ---@param doc Pandoc
 function Pandoc(doc)
+   if FORMAT == 'docx' and PANDOC_WRITER_OPTIONS.extensions:includes('native_numbering') then
+      pandoc.log.warn('`native_numbering` extension must not be used. Exiting.')
+      return
+   end
+   if FORMAT == 'docx' and PANDOC_WRITER_OPTIONS.extensions:includes('number_sections') then
+      pandoc.log.warn(
+         '`number_sections` extension must not be used with DOCX. '
+            .. 'Instead, associate a Number Format with your Heading style in your reference-doc. '
+            .. 'Exiting.'
+      )
+      return
+   end
+
    return doc:walk({
       Table = parse_attr.parse_table_attr,
       Inlines = parse_attr.parse_equation_attr,
@@ -31,7 +44,12 @@ function Pandoc(doc)
          -- Number cross-referenceable elements and construct table with Ids and numbers.
          traverse = 'topdown', -- needed for subfigs
          Pandoc = numbering.number_sections,
-         Span = numbering.number_equations,
+         Span = function(span)
+            if FORMAT ~= 'docx' then return numbering.number_equations(span) end
+         end,
+         Para = function(para)
+            if FORMAT == 'docx' then return numbering.number_docx_equations(para) end
+         end,
          Figure = numbering.number_fig_or_tbl,
          Table = numbering.number_fig_or_tbl,
       })

@@ -211,7 +211,14 @@ end)
 
 describe('_is_resolved_crossref', function()
    it('says resolved cross-reference is resolved', function()
+      _G.FORMAT = 'html'
       local resolved_crossref = pandoc.Link({}, '#fig1', '', pandoc.Attr('', { 'cross-ref' }))
+      assert.is_true(crossrefs._is_resolved_crossref(resolved_crossref))
+   end)
+
+   it('says resolved DOCX cross-reference is resolved', function()
+      _G.FORMAT = 'docx'
+      local resolved_crossref = pandoc.Span({}, pandoc.Attr('', { 'cross-ref' }))
       assert.is_true(crossrefs._is_resolved_crossref(resolved_crossref))
    end)
 end)
@@ -223,6 +230,7 @@ describe('write_crossref', function()
       tbl1 = { type = 'tbl', number = '1' },
       eqn1 = { type = 'eqn', number = '1' },
    }
+   _G.FORMAT = 'html'
 
    it('resolves cross-references', function()
       for id, _ in pairs(_G.IDs) do
@@ -238,6 +246,15 @@ describe('write_crossref', function()
       assert.stub(log_stub).was.called(1)
       log_stub:revert()
    end)
+
+   it('resolves DOCX cross-reference', function()
+      _G.FORMAT = 'docx'
+      for id, _ in pairs(_G.IDs) do
+         local unresolved_crossref = create_crossref(id)
+         local resolved_crossref = crossrefs.write_crossref(unresolved_crossref)
+         assert.equal('Span', resolved_crossref.tag) ---@diagnostic disable-line: need-check-nil
+      end
+   end)
 end)
 
 describe('write_crossrefs', function()
@@ -251,6 +268,7 @@ describe('write_crossrefs', function()
       eqn1 = { type = 'eqn', number = '1' },
       eqn2 = { type = 'eqn', number = '2' },
    }
+   _G.FORMAT = 'html'
 
    it('writes cross-reference groups', function()
       for _, type in ipairs { 'sec', 'fig', 'tbl', 'eqn' } do
