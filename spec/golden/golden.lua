@@ -26,9 +26,23 @@ for _, test in ipairs(tests) do
             -- Restore previous version of expected output file.
             io.open(expected_file, 'w'):write(expected):close()
             -- Compare expected output with actual output.
-            -- Remove `\r` chars, in case tests are run on WSL.
-            ---@diagnostic disable-next-line: undefined-field
-            assert.strings_equal(expected:gsub('\r', ''), received:gsub('\r', ''))
+            if pandoc.format.from_path(expected_file) == 'docx' then
+               ---@param archive ZipArchive
+               ---@return string
+               local function get_document(archive)
+                  return archive.entries
+                     :filter(function(entry) return entry.path == 'word/document.xml' end)[1]
+                     :contents()
+               end
+               local expected_document = get_document(pandoc.zip.Archive(expected))
+               local received_document = get_document(pandoc.zip.Archive(received))
+               ---@diagnostic disable-next-line: undefined-field
+               assert.strings_equal(expected_document, received_document)
+            else
+               -- Remove `\r` chars, in case tests are run on WSL.
+               ---@diagnostic disable-next-line: undefined-field
+               assert.strings_equal(expected:gsub('\r', ''), received:gsub('\r', ''))
+            end
          end
       end)
    end
