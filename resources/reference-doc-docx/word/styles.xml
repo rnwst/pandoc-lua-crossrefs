@@ -184,6 +184,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="0" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:before="360" w:after="80" />
       <w:outlineLvl w:val="0" />
     </w:pPr>
@@ -206,6 +210,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="1" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:before="160" w:after="80" />
       <w:outlineLvl w:val="1" />
     </w:pPr>
@@ -228,6 +236,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="2" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:before="160" w:after="80" />
       <w:outlineLvl w:val="2" />
     </w:pPr>
@@ -250,6 +262,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="3" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:before="80" w:after="40" />
       <w:outlineLvl w:val="3" />
     </w:pPr>
@@ -272,6 +288,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="4" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:before="80" w:after="40" />
       <w:outlineLvl w:val="4" />
     </w:pPr>
@@ -292,6 +312,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="5" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:before="40" w:after="0" />
       <w:outlineLvl w:val="5" />
     </w:pPr>
@@ -314,6 +338,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="6" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:before="40" w:after="0" />
       <w:outlineLvl w:val="6" />
     </w:pPr>
@@ -334,6 +362,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="7" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:after="0" />
       <w:outlineLvl w:val="7" />
     </w:pPr>
@@ -356,6 +388,10 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
+      <w:numPr>
+        <w:ilvl w:val="8" />
+        <w:numId w:val="1001" />
+      </w:numPr>
       <w:spacing w:after="0" />
       <w:outlineLvl w:val="8" />
     </w:pPr>
