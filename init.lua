@@ -21,9 +21,9 @@ function Pandoc(doc)
       pandoc.log.warn('`native_numbering` extension must not be used. Exiting.')
       return
    end
-   if FORMAT == 'docx' and PANDOC_WRITER_OPTIONS.extensions:includes('number_sections') then
+   if FORMAT == 'docx' and PANDOC_WRITER_OPTIONS.number_sections == true then
       pandoc.log.warn(
-         '`number_sections` extension must not be used with DOCX. '
+         '`--number-sections` option must not be used with DOCX. '
             .. 'Instead, associate a Number Format with your Heading style in your reference-doc. '
             .. 'Exiting.'
       )
